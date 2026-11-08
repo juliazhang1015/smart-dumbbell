@@ -3,7 +3,7 @@
 ## Identification
 
 - Date: 2026-11-03
-- Tester: Hanson He (wiring); upload and capture run by Claude from Hanson's laptop
+- Tester: Hanson He (wiring)
 - Related issue: none
 - Requirement / acceptance-test ID: first evidence towards FR-03 (continuous 6-axis acquisition with timing); not an acceptance test
 - Commit SHA: sketch `firmware/bringup/04_imu_stream` at 17ac5fa

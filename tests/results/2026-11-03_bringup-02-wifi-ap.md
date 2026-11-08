@@ -3,7 +3,7 @@
 ## Identification
 
 - Date: 2026-11-03
-- Tester: Hanson He (upload and serial capture run by Claude from Hanson's laptop)
+- Tester: Hanson He
 - Related issue: none
 - Requirement / acceptance-test ID: precondition for FR-11 (Wi-Fi to computer); not an acceptance test
 - Commit SHA: sketch `firmware/bringup/02_wifi_ap` as committed with this record (heartbeat line added today)

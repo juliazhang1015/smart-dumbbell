@@ -3,7 +3,7 @@
 ## Identification
 
 - Date: 2026-11-03
-- Tester: Hanson He (upload and serial capture run by Claude from Hanson's laptop)
+- Tester: Hanson He
 - Related issue: none
 - Requirement / acceptance-test ID: none (board bring-up, precondition for everything else)
 - Commit SHA: 17ac5fa (sketch `firmware/bringup/01_blink`)

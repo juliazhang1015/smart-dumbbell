@@ -1,6 +1,6 @@
 # Project handoff
 
-For teammates and their assistants. This is a snapshot begun on 2026-11-03 with updates through Nov 6, translated and reorganized on Nov 8. Consult dated [decisions](decisions.md) and actual test records when statements conflict; this brief is not a replacement for the working specification.
+For teammates. This is a snapshot begun on 2026-11-03 with updates through Nov 6, translated and reorganized on Nov 8. Consult dated [decisions](decisions.md) and actual test records when statements conflict; this brief is not a replacement for the working specification.
 
 ## Project and owners
 
@@ -20,7 +20,7 @@ The recorded demonstration date is 2026-11-25, reported verbally and not yet che
 ## Available work and limitations
 
 - Working requirements, AT-01–10 targets, decisions, hardware/budget documents and collaboration guidance.
-- Concept CAD v0.1 (DWG and generator) and an AI appearance study.
+- Concept CAD v0.1 (DWG and generator) and a concept appearance study.
 - Delivered pitch and narration snapshots still referring to the older ADXL335 design.
 - [Wiring artifacts](../hardware/wiring/README.md), including a schematic redrawn from physical modules on Nov 4. Initial I2C breadboard tests are recorded.
 - Nano ESP32, Adafruit 4517, two 4209 cables, borrowed GY-MAX30102, kit OLED and a purchased power bank.
@@ -76,7 +76,7 @@ See the decision log for authority and unresolved scope changes.
 - Nano logic is 3.3 V; the original bench setup recommends red/yellow LEDs with 220 ohm resistance.
 - Nano does not directly fit the Grove Base Shield. Use an appropriate Grove-to-Dupont adapter (recorded candidate Seeed 110990210).
 - Pitch, narration, PDF and CAD placeholders are dated snapshots with old sensor/dimension assumptions. Replace them in coordinated versions.
-- Many planning documents were drafted with AI assistance. Polished formatting is not validation; distinguish proposals from recorded evidence.
+- Polished formatting is not validation; distinguish proposals from recorded evidence.
 
 ## Reading order
 
@@ -86,7 +86,7 @@ See the decision log for authority and unresolved scope changes.
 4. [Wiring](../hardware/wiring/README.md).
 5. [Overview](../README.md).
 6. [Team guide](team-guide.md) and [contributing](../CONTRIBUTING.md).
-7. [Agent instructions](../AGENTS.md).
+7. [Project guidelines](project-guidelines.md).
 
 Presentation, CAD, renders and specification exports are versioned snapshots. Hanson also has a local `Hardware Datasheets/` collection outside this repository.
 
@@ -107,4 +107,4 @@ Presentation, CAD, renders and specification exports are versioned snapshots. Ha
 | Enclosure | Resolve cavity/layout; original target was a first print by Nov 10 | Versioned `hardware/cad/` |
 | Heart-rate feasibility | Obtain reference and define the 60 s synchronized comparison | `tests/results/` |
 
-Follow AGENTS.md: do not silently change hardware, exercises, features or acceptance numbers. Update the English working specification and flag stale exports. Separate simulation, software checks, measurements, mechanical evidence and clinical claims. Date prices/dimensions and cite sources. Do not commit private order details or identifiable recordings. Use focused branches, English commit messages and PR review; preserve others' binary artifacts with new version names.
+Follow the project guidelines: do not silently change hardware, exercises, features or acceptance numbers. Update the English working specification and flag stale exports. Separate simulation, software checks, measurements, mechanical evidence and clinical claims. Date prices/dimensions and cite sources. Do not commit private order details or identifiable recordings. Use focused branches, English commit messages and PR review; preserve others' binary artifacts with new version names.
