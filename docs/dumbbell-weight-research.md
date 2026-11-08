@@ -2,7 +2,7 @@
 
 **Project:** ECE 198 Smart Dumbbell (CCCARE use case)  
 **Research date:** 2026-11-08  
-**Design decision:** Select **1 kg (approximately 2.2 lb)** as the **nominal total mass** of the first smart-dumbbell prototype. The existing [project specification](specification.md) sets a **maximum total prototype mass of 1 kg**, including the enclosure, electronics, power source, and any added mass. The finished device has not yet been weighed or evaluated with CCCARE participants.
+**Design decision:** Select **1 kg (approximately 2.2 lb)** as the **nominal total mass** of the first smart-dumbbell prototype. The existing [project specification](specification.md) states a **target total prototype mass of no more than 1 kg** (a target, not a hard limit), including the enclosure, electronics, power source, and any added mass; `HANDOFF.md` (2026-11-06) proposes 1–1.5 kg with an adjustable steel-washer ballast, and the final figure is recorded in `decisions.md`. The finished device has not yet been weighed or evaluated with CCCARE participants.
 
 ## 1. User and project context
 
@@ -24,12 +24,12 @@ Our prototype is intended for CCCARE participants or graduates **who can already
 
 1. **Relevant lightweight reference:** 1 kg is approximately 2.2 lb, within the 2–3 lb introductory weighted-exercise example in the CDC/Tufts guide [3].
 2. **Fits the planned demonstration:** A lightweight bicep-curl prototype can demonstrate the project's core features: motion sensing, repetition counting, user feedback, and session logging. These functions do not require a heavier load.
-3. **Consistent with the existing project constraint:** The current specification limits the entire smart dumbbell to **no more than 1 kg**. The 1 kg figure refers to the **assembled device**, not a 1 kg weight *plus* electronic components.
+3. **Consistent with the existing project target:** The current specification sets a target of **no more than 1 kg** for the entire smart dumbbell. The 1 kg figure refers to the **assembled device**, not a 1 kg weight *plus* electronic components.
 4. **Leaves clinical decisions to professionals:** Users with different capabilities may require no weight, less weight, or more weight. The 1 kg prototype is only intended for people whose exercise plan permits it.
 
 ## 4. Engineering requirements and verification
 
-- **Mass accounting:** Weigh the complete assembled device, including the enclosure, handle, batteries/power bank, controller, sensors, screen, cables, fasteners, and any ballast. **Target: approximately 1 kg; hard limit under the current specification: 1 kg total.**
+- **Mass accounting:** Weigh the complete assembled device, including the enclosure, handle, batteries/power bank, controller, sensors, screen, cables, fasteners, and any ballast. **Target: approximately 1 kg total.** The specification states this as a target, not a hard limit; 1–1.5 kg with an adjustable washer count is under discussion, and the final number belongs in `decisions.md`.
 - **Do not add 1 kg of ballast:** Calculate any necessary ballast *after* measuring the mass of all installed components.
 - **Balance and grip:** Check center of mass, grip comfort, mechanical security, and resistance to slipping. The current CAD model is a packaging study, not evidence of safe handling.
 - **Motion-tracking validation:** Test accurate repetition counting at the selected assembled mass and across the intended motion speeds. Log results; do not describe tests as passed until conducted.
