@@ -1,6 +1,7 @@
-# Generates schematic-v1.svg. Run: python3 hardware/wiring/gen_schematic.py hardware/wiring/schematic-v1.svg
+# Generates the current schematic (v1.2). Run: python3 hardware/wiring/gen_schematic.py hardware/wiring/schematic-v1.2.svg
+# schematic-v1.svg (three buttons + Grove buzzer, 2026-11-04) is kept as drawn; it is no longer produced by this script.
 import sys
-W, H = 1420, 1080
+W, H = 1500, 1080
 F = "Helvetica, Arial, sans-serif"
 C_GND, C_3V3, C_SCL, C_SDA, C_SIG, C_TXT, C_SUB = "#111", "#c62828", "#b58900", "#1565c0", "#333", "#111", "#555"
 out = []
@@ -18,11 +19,11 @@ def dot(x, y, c=C_SIG): add(f"<circle cx='{x}' cy='{y}' r='3.6' fill='{c}'/>")
 def box(x, y, w, h, fill="#f7f7f7", stroke="#333", rx=5, dash=None):
     d = f" stroke-dasharray='{dash}'" if dash else ""
     add(f"<rect x='{x}' y='{y}' width='{w}' height='{h}' rx='{rx}' fill='{fill}' stroke='{stroke}' stroke-width='1.5'{d}/>")
-def gnd_symbol(x, y):  # stem down from (x,y), then three bars
-    line(x, y, x, y + 14, C_GND); line(x - 12, y + 14, x + 12, y + 14, C_GND, 2)
-    line(x - 8, y + 19, x + 8, y + 19, C_GND, 2); line(x - 4, y + 24, x + 4, y + 24, C_GND, 2)
-def v33_flag(x, y):  # stem up from (x,y), bar and label
-    line(x, y, x, y - 14, C_3V3); line(x - 10, y - 14, x + 10, y - 14, C_3V3, 2.2)
+def gnd_symbol(x, y, c=C_GND, dash=None):  # stem down from (x,y), then three bars
+    line(x, y, x, y + 14, c, 1.8, dash); line(x - 12, y + 14, x + 12, y + 14, c, 2)
+    line(x - 8, y + 19, x + 8, y + 19, c, 2); line(x - 4, y + 24, x + 4, y + 24, c, 2)
+def v33_flag(x, y, dash=None):  # stem up from (x,y), bar and label
+    line(x, y, x, y - 14, C_3V3, 1.8, dash); line(x - 10, y - 14, x + 10, y - 14, C_3V3, 2.2)
     text(x, y - 19, "3V3", 11, "middle", "bold", C_3V3)
 def resistor(x1, x2, y, label):  # horizontal IEC rectangle
     w = x2 - x1; line(x1, y, x1 + 10, y); box(x1 + 10, y - 7, w - 20, 14, "white", C_SIG, 1); line(x2 - 10, y, x2, y)
@@ -42,9 +43,9 @@ def switch(x, y, label, sub):  # NO pushbutton from (x,y) to (x+60,y)
 
 add(f"<svg xmlns='http://www.w3.org/2000/svg' width='{W}' height='{H}' viewBox='0 0 {W} {H}'>")
 add(f"<rect width='{W}' height='{H}' fill='white'/>")
-text(20, 30, "Smart dumbbell - schematic v1 (2026-11-04)", 19, weight="bold")
-text(20, 50, "Modules as photographed 2026-11-04. I2C section matches the bench build of 2026-11-03 (scan: 0x1C 0x3C 0x57 0x6A). Buttons, LED and buzzer are the planned connections, not yet tested.", 11.5, fill=C_SUB)
-text(20, 66, "Pin names are the Arduino names printed on the Nano ESP32 header. All logic is 3.3 V. A dot is a junction; a crossing without a dot is not a connection.", 11.5, fill=C_SUB)
+text(20, 30, "Smart dumbbell - schematic v1.2 (2026-11-08)", 19, weight="bold")
+text(20, 50, "Modules as photographed 2026-11-04. I2C section: all four devices scanned 2026-11-03 (0x1C 0x3C 0x57 0x6A) and run together by firmware/app on 2026-11-06. SW1 tested 2026-11-06; LED wired, not yet observed.", 11.5, fill=C_SUB)
+text(20, 66, "Pin names are the Arduino names printed on the Nano ESP32 header. All logic is 3.3 V. A dot is a junction; a crossing without a dot is not a connection. Dashed = not fitted. Change from v1: one button (SW1), buzzer not fitted.", 11.5, fill=C_SUB)
 
 # ---------- Nano ESP32 ----------
 NX, NY, NW, NH = 640, 180, 240, 640
@@ -72,15 +73,15 @@ text(420, 1052, "GND", 11, "middle", "bold", C_GND); text(470, 1052, "3V3", 11, 
 text(520, 1052, "SCL", 11, "middle", "bold", C_SCL); text(570, 1052, "SDA", 11, "middle", "bold", C_SDA)
 RAIL = {"GND": (420, C_GND), "3V3": (470, C_3V3), "SCL": (520, C_SCL), "SDA": (570, C_SDA)}
 
-# Right pins
+# Right pins. Solid stubs: D2 (SW1) and D7 (LED). Dashed: free or reserved.
 RP = [("D2", 260), ("D3", 330), ("D4", 400), ("D5", 490), ("D7", 640), ("D8", 720), ("D9", 760)]
 for name, y in RP:
     text(NX + NW - 8, y + 4, name, 12, "end", "bold")
-for name, y in RP[:5]:
+for y in (260, 640):
     line(NX + NW, y, NX + NW + 30, y)
-line(NX + NW, 720, NX + NW + 30, 720, C_SIG, 1.5, "4 4"); line(NX + NW, 760, NX + NW + 30, 760, C_SIG, 1.5, "4 4")
-text(NX + NW + 36, 724, "reserved: GY-MAX30102 INT (not wired in v1, polling used)", 10.5, fill=C_SUB)
-text(NX + NW + 36, 764, "reserved: 4517 INT1 data-ready (not wired in v1)", 10.5, fill=C_SUB)
+for y, note in [(330, "free (SW2 Pause removed; firmware/app uses one button)"), (400, "free (SW3 End removed)"),
+                (720, "reserved: GY-MAX30102 INT (not wired, polling used)"), (760, "reserved: 4517 INT1 data-ready (not wired)")]:
+    line(NX + NW, y, NX + NW + 30, y, C_SIG, 1.5, "4 4"); text(NX + NW + 36, y + 4, note, 10.5, fill=C_SUB)
 
 # ---------- I2C modules on the left ----------
 MX, MW = 60, 290
@@ -99,7 +100,7 @@ module(430, 195, "Adafruit 4517  LSM6DSOX + LIS3MDL", "STEMMA QT cable 4209 (eit
        ["I2C 0x6A (LSM6DSOX), 0x1C (LIS3MDL, unused)", "10 k pull-ups to 3.3 V on board"])
 module(645, 215, "GY-MAX30102 pulse oximeter", "0.1 in header, pins per silkscreen",
        [("VIN", "3V3", 705), ("GND", "GND", 735), ("SCL", "SCL", 765), ("SDA", "SDA", 795)],
-       ["I2C 0x57;  INT pin left open (see D8)", "4.7 k pull-ups to on-board 1.8 V: measure bus high level"])
+       ["I2C 0x57;  INT pin left open (see D8)", "4.7 k pull-ups to on-board 1.8 V: see note 3"])
 module(880, 165, "Kit OLED 0.96 in  SSD1306 128x64", "pin order GND VCC SCL SDA (silkscreen, photo 2026-11-04)",
        [("GND", "GND", 940), ("VCC", "3V3", 970), ("SCL", "SCL", 1000), ("SDA", "SDA", 1030)],
        ["I2C 0x3C"])
@@ -107,47 +108,55 @@ module(880, 165, "Kit OLED 0.96 in  SSD1306 128x64", "pin order GND VCC SCL SDA 
 text(MX + MW - 8, 829, "INT", 12, "end", "bold", C_SUB); line(MX + MW, 825, MX + MW + 20, 825, C_SUB, 1.4, "3 3")
 text(MX + MW + 26, 829, "n.c.", 10.5, fill=C_SUB)
 
-# ---------- Right side: buttons, buzzer, LED ----------
+# ---------- Right side: SW1, optional buzzer, LED ----------
 SX = NX + NW + 30  # 910
-for (name, y), (lab, sub) in zip(RP[:3], [("SW1  Start", "kit pushbutton, to GND"), ("SW2  Pause / resume", "kit pushbutton, to GND"), ("SW3  End", "kit pushbutton, to GND")]):
-    line(SX, y, 1000, y); switch(1000, y, lab, sub); line(1060, y, 1100, y); gnd_symbol(1100, y)
-text(1180, 250, "INPUT_PULLUP on D2 / D3 / D4;", 10.5, fill=C_SUB); text(1180, 264, "no external resistors.", 10.5, fill=C_SUB)
-text(1180, 282, "Pressed = LOW.", 10.5, fill=C_SUB)
+line(SX, 260, 1000, 260); switch(1000, 260, "SW1", "kit pushbutton, to GND"); line(1060, 260, 1100, 260); gnd_symbol(1100, 260)
+for i, s in enumerate(["INPUT_PULLUP on D2; no external resistor. Pressed = LOW.",
+                       "Short press: start / pause / resume.  Hold 1.5 s: end.",
+                       "Tested 2026-11-06 with firmware/app (EVENT lines on serial)."]):
+    text(1130, 250 + 16 * i, s, 10.5, fill=C_SUB)
 
-# Grove buzzer module
-GX, GY, GW, GH = 1090, 430, 260, 192
-box(GX, GY, GW, GH, "#f3f3f3")
-text(GX + 10, GY + 20, "Grove Buzzer (Seeed)", 13, "start", "bold"); text(GX + 10, GY + 36, "J1 Grove 4-pin; Q1 transistor drives BUZ1", 10.5, fill=C_SUB)
-gp = [("SIG  yellow", 490), ("NC  white", 520), ("VCC  red", 550), ("GND  black", 580)]
+# Buzzer: not fitted in v1.2, D5 reserved. Drawn dashed so the pin assignment survives if the team adds one back.
+GX, GY, GW, GH = 1090, 430, 290, 200
+box(GX, GY, GW, GH, "#fbfbfb", "#777", 5, "6 4")
+text(GX + 10, GY + 20, "Buzzer - NOT FITTED (optional)", 13, "start", "bold", "#555")
+text(GX + 10, GY + 36, "Grove Buzzer (Seeed) or kit active buzzer module", 10.5, fill=C_SUB)
+gp = [("SIG", 490), ("VCC", 550), ("GND", 580)]
 for pname, y in gp:
-    text(GX + 10, y + 4, pname, 12, "start", "bold")
-line(SX, 490, GX, 490)                       # D5 -> SIG
-line(GX, 550, 1040, 550, C_3V3); v33_flag(1040, 550)
-line(GX, 580, 1040, 580, C_GND); gnd_symbol(1040, 580)
-text(GX + 10, GY + GH - 22, "Needs Grove-to-jumper cable (Seeed 110990210)", 10, fill=C_SUB)
-text(GX + 10, GY + GH - 8, "or a cut Grove cable. HIGH on SIG = sound.", 10, fill=C_SUB)
+    text(GX + 10, y + 4, pname, 12, "start", "bold", "#555")
+line(NX + NW, 490, GX, 490, C_SIG, 1.5, "4 4")          # D5 -> SIG, dashed
+text(NX + NW + 36, 484, "reserved: buzzer SIG", 10.5, fill=C_SUB)
+line(GX, 550, 1040, 550, C_3V3, 1.8, "4 4"); v33_flag(1040, 550, "4 4")
+line(GX, 580, 1040, 580, C_GND, 1.8, "4 4"); gnd_symbol(1040, 580, C_GND, "4 4")
+for i, s in enumerate(["firmware/app: USE_BUZZER 0, D5 held LOW.", "If fitted: HIGH on SIG = sound; Grove needs a",
+                       "Grove-to-male-jumper cable (Seeed 110990210)."]):
+    text(GX + 10, GY + GH - 36 + 14 * i, s, 10, fill=C_SUB)
 
 # LED + resistor on D7
-line(SX, 640, 960, 640); resistor(960, 1050, 640, "R1  220 ohm"); led(1060, 640, "LED1 (kit, red or yellow)"); line(1096, 640, 1140, 640); gnd_symbol(1140, 640)
-text(960, 690, "Alternative: use the on-board RGB LED (LED_RED etc., active low) and drop this net.", 10.5, fill=C_SUB)
+line(SX, 640, 960, 640); resistor(960, 1050, 640, "R1  220 ohm"); led(1060, 640, "LED1 (kit, red or yellow)"); line(1096, 640, 1165, 640); gnd_symbol(1165, 640)
+text(960, 690, "Wired on the bench 2026-11-06, not yet seen lit.", 10.5, fill=C_SUB)
+text(960, 704, "Alternative: on-board RGB LED (LED_RED etc., active low) and drop this net.", 10.5, fill=C_SUB)
 
 # Notes box
-bx, by, bw, bh = 920, 800, 480, 200
+bx, by, bw, bh = 920, 800, 480, 232
 box(bx, by, bw, bh, "#fffdf5", "#999", 4)
 text(bx + 12, by + 22, "Notes", 12.5, "start", "bold")
 notes = [
     "1. Power: Nano only from USB-C. No VIN, no bare LiPo. 3V3 pin supplies every module.",
-    "2. One I2C bus at 400 kHz: 0x6A, 0x1C, 0x57, 0x3C. Confirmed by 03_i2c_scan on 2026-11-03.",
-    "3. Bus high level: 4517 10 k to 3.3 V in parallel with MAX30102 4.7 k to 1.8 V gives about 2.7 V.",
-    "   Measure SDA/SCL high with a meter; below 2.5 V, move or remove the MAX30102 pull-ups.",
-    "4. Buttons: three kit pushbuttons, one leg to the pin, the other to GND. Debounce in firmware.",
-    "5. Buzzer and LED pins are the ones used by firmware/bringup/07_oled_buttons.",
-    "6. Not drawn: Grove vibration motor (D6, only if available), UNO R4 bench board,",
-    "   ADXL335 backup, LIS3MDL magnetometer (same board, not used).",
-    "Source: hardware/wiring/README.md net list. Regenerate from gen_schematic.py if pins change.",
+    "2. One I2C bus at 400 kHz: 0x6A, 0x1C, 0x57, 0x3C. Scanned together 2026-11-03 (bring-up 07);",
+    "   all four ran together in firmware/app 2026-11-06. Adafruit_SSD1306 defaults drop the bus to",
+    "   100 kHz after each display call; firmware/app sets 400 kHz for clkDuring and clkAfter.",
+    "3. Bus high level: 4517 10 k to 3.3 V with MAX30102 4.7 k to 1.8 V alone is about 2.3 V, under",
+    "   the ESP32-S3 V_IH (about 2.5 V); the OLED's own pull-ups raise it. Works so far but is not",
+    "   measured. Meter SDA/SCL high; below 2.5 V, remove or move the MAX30102 pull-ups.",
+    "4. Button: SW1 on D2 only, one leg to the pin, the other to GND. Debounce in firmware.",
+    "5. Pins from firmware/app/app.ino: PIN_BTN D2, PIN_BUZZ D5 (compiled out), PIN_LED D7.",
+    "6. Not drawn: UNO R4 bench board, ADXL335 backup, LIS3MDL magnetometer (same board, unused).",
+    "   D6 free. Bench build: Nano off-board, half breadboard as hub (halfboard-v1.svg).",
+    "Source: hardware/wiring/README.md net list + firmware/app. Regenerate from gen_schematic.py.",
 ]
 for i, n in enumerate(notes):
-    text(bx + 12, by + 42 + 17 * i, n, 10.5, fill="#333")
+    text(bx + 12, by + 42 + 16 * i, n, 10.5, fill="#333")
 add("</svg>")
 open(sys.argv[1], "w").write("\n".join(out) + "\n")
 print("wrote", sys.argv[1], len("\n".join(out)), "bytes")
