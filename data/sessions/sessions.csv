@@ -1,5 +1,5 @@
 file,participant,record_label,variant,true_reps,date,recorder,notes
-P01_idle_stand_01.csv,P01,idle,stand,,2026-11-16,Hanson,protocol v0.2; mount v1
+P01_idle_stand_01.csv,P01,idle,stand,,2026-11-16,Hanson,protocol v0.2; mount v1; hand R; strength training N
 P01_idle_table_01.csv,P01,idle,table,,2026-11-16,Hanson,protocol v0.2; mount v1; orientation reference: X tilt 3.9 deg from horizontal
 P01_idle_lap_01.csv,P01,idle,lap,,2026-11-16,Hanson,protocol v0.2; mount v1
 P01_curl_slow_01.csv,P01,curl,slow,14,2026-11-16,Hanson,"protocol v0.2; mount v1; 13.5 reps inside the file, the 14th is cut by the 40 s limit"
