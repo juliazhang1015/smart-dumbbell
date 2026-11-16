@@ -1,6 +1,6 @@
 # Motion classification recording protocol
 
-Version v0.1, 2026-11-03. Owner: Hanson He. Resolve **TBD** items before recording the first participant. **Proposed** items require team agreement.
+Version v0.2, 2026-11-16 (v0.1: 2026-11-03; v0.2 records the mounting used from P01 onward). Owner: Hanson He. Resolve **TBD** items before recording the first participant. **Proposed** items require team agreement.
 
 ## 1. Purpose
 
@@ -13,13 +13,22 @@ The same recordings support classification of two-second motion windows and offl
 - Record over USB using `firmware/bringup/record_serial.py`; Wi-Fi is not used for v1 collection.
 - CSV: `t_ms,ax,ay,az,gx,gy,gz`. Acceleration is m/s² and angular rate deg/s. Axes follow the 4517 markings: +X/+Y arrows and +Z out of the component face, checked on 2026-11-03.
 
-## 3. Recording fixture and mounting — TBD
+## 3. Recording fixture and mounting (mount v1, frozen 2026-11-16)
 
-The original protocol proposes an ordinary 1–1.5 kg dumbbell or equivalent fixture while the enclosure is unavailable. This is a recording proposal, not an approved change to the working specification's mass limit; reconcile it before collection.
+Fixture: a neoprene dumbbell, shown in [the mounting photo](figures/mounting-v1.jpg), used while the enclosure is unavailable. **TBD:** its mass has not been weighed; weigh it and record the value here before the second participant. The fixture is a recording aid and does not change the working specification's mass limit.
 
-Secure the 4517 at one end of the handle with tape or ties. It must not move independently. Secure the Nano/breadboard to a head, or keep them on the table using the 150 mm cable for seated recordings only. Route USB behind the hand with at least 1 m of slack.
+Mounting, as used for P01:
 
-**Proposed orientation:** X along the handle, component face toward the back of the hand/outward during a curl. The expected main angular-rate signal is `gx`; confirm this experimentally. Before the first participant, save a mounting photo as `ml/figures/mounting-v1.jpg`, state which head +X points toward and which way the component face points, and freeze the mounting. A later change needs a new protocol version and version labels on existing data.
+- The 4517 is taped to the top of one head, component face up when the dumbbell lies on a table with the sensor on top. Its long axis (STEMMA QT socket to STEMMA QT socket) is parallel to the handle.
+- Sensor X is the curl axis. Measured on the P01 curl files, the principal rotation axis is 3–7° from sensor X and carries 94–96 % of the gyro energy. Raising the dumbbell gives a negative `gx` angle.
+- Orientation reference: `data/sessions/P01_idle_table_01.csv`, mean acceleration (0.69, 0.11, 10.04) m/s², so X is 3.9° from horizontal. **TBD:** which head +X points toward has not been read from the silkscreen (it is under the tape); the sign convention above is the record until it is.
+- The Nano hangs from the USB cable and is joined to the 4209 cable by loose jumper leads. This is the weak point: a lead came off during one fast-curl take. Secure the Nano and the joints to the head before the next participant; this does not change the sensor orientation.
+
+Do not move the 4517. Before and after each participant, lay the dumbbell flat with the sensor on top, record 5 s, and compare the mean acceleration with the reference: the gravity direction should be within 5° (it was 1.7° after P01). A larger difference, or any re-taping of the sensor, needs a new mount version here and that version in the `sessions.csv` notes.
+
+An earlier attempt on 2026-11-16 had the sensor about 40° off the handle axis; those takes were discarded and are not in the repository.
+
+Route USB behind the hand with at least 1 m of slack.
 
 ## 4. Participants
 
@@ -69,6 +78,8 @@ Use `P01_curl_slow_01.csv`: participant, recording label, variant and attempt nu
    ```bash
    python3 firmware/bringup/record_serial.py /dev/cu.usbmodemXXXX data/sessions/P01_curl_slow_01.csv 40
    ```
+
+   The recorder stops with an error if the samples freeze or stall, which is what a loose wire or a sensor power glitch looks like. Fix the wire, press RST on the Nano, wait 3 s and record the take again.
 
 3. Give the start cue when recording begins. Continue until automatic stop; the observer counts repetitions.
 4. Check each recording:
