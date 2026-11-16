@@ -81,7 +81,7 @@ Use `P01_curl_slow_01.csv`: participant, recording label, variant and attempt nu
 
    The recorder stops with an error if the samples freeze or stall, which is what a loose wire or a sensor power glitch looks like. Fix the wire, press RST on the Nano, wait 3 s and record the take again.
 
-3. Give the start cue when recording begins. Continue until automatic stop; the observer counts repetitions.
+3. Give the start cue when recording begins. Continue until automatic stop; the observer counts repetitions. Only a repetition that is raised and lowered before the recorder prints its final line counts. Have the participant stop at that line, and note any repetition that was cut off or finished after it.
 4. Check each recording:
 
    ```bash
@@ -89,7 +89,10 @@ Use `P01_curl_slow_01.csv`: participant, recording label, variant and attempt nu
    ```
 
    Require row count within ±3% of 104 × duration, no adjacent timestamp gap above 15 ms, and dominant `gx` peaks for curls under the proposed mounting. Inspect axis dominance as well as the script output. Repeat failed recordings.
-5. Add filename, participant, recording label, variant, true count, date, recorder and notes to `data/sessions/sessions.csv`.
+5. Add one row per file to `data/sessions/sessions.csv`: `file`, `participant`, `record_label`, `variant`, `true_reps`, `observer_reps`, `reps_source`, `date`, `recorder`, `notes`.
+   - `true_reps` is the number of complete cycles inside the file. It is the value a correct counter should report for that file, so it never includes a repetition that was cut off by the end of the recording or done after it. Empty for idle and other files.
+   - `observer_reps` is the live count exactly as the observer reported it. Empty if nobody counted.
+   - `reps_source` says where `true_reps` comes from: `observer` (the live count, nothing cut off), `observer_adjusted` (the live count minus repetitions the recording shows were not completed inside the file; say which in the notes), or `imu_inferred` (no live count; read from the `gx` angle afterwards). An `imu_inferred` value comes from the same signal a counter uses, so it is a provisional label and must not be used as ground truth for counting accuracy.
 6. Submit approved anonymized recordings and metadata together on the same day through the team workflow. Example commit: `data: add P01 session (8 files)`. Do not force-add ignored raw data without authorization.
 
 ## 9. Excluded material

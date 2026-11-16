@@ -1,9 +1,9 @@
-file,participant,record_label,variant,true_reps,date,recorder,notes
-P01_idle_stand_01.csv,P01,idle,stand,,2026-11-16,Hanson,protocol v0.2; mount v1; hand R; strength training N
-P01_idle_table_01.csv,P01,idle,table,,2026-11-16,Hanson,protocol v0.2; mount v1; orientation reference: X tilt 3.9 deg from horizontal
-P01_idle_lap_01.csv,P01,idle,lap,,2026-11-16,Hanson,protocol v0.2; mount v1
-P01_curl_slow_01.csv,P01,curl,slow,14,2026-11-16,Hanson,"protocol v0.2; mount v1; 13.5 reps inside the file, the 14th is cut by the 40 s limit"
-P01_curl_normal_01.csv,P01,curl,normal,18,2026-11-16,Hanson,"protocol v0.2; mount v1; 17.5 reps inside the file, the 18th is cut by the 40 s limit"
-P01_curl_fast_02.csv,P01,curl,fast,27,2026-11-16,Hanson,"protocol v0.2; mount v1; 26 reps inside the file, the 27th came after the 40 s limit; take 01 discarded (wire came loose)"
-P01_other_mixed_01.csv,P01,other,mixed,,2026-11-16,Hanson,"protocol v0.2; mount v1; pick up/put down, carry, lateral raises, front raises, free shaking; gyro exceeds the nominal 500 dps range and clips at 573 dps during free shaking (221 rows clipped)"
-P01_partial_mixed_01.csv,P01,partial,mixed,11,2026-11-16,Hanson,"protocol v0.2; mount v1; 10 half reps (about 65 deg), 5 reps with a hold at the top, then 3 + 3 full reps; true_reps = 5 + 6 full-range reps, taken from the gx angle, not counted live"
+file,participant,record_label,variant,true_reps,observer_reps,reps_source,date,recorder,notes
+P01_idle_stand_01.csv,P01,idle,stand,,,,2026-11-16,Hanson,protocol v0.2; mount v1; hand R; strength training N
+P01_idle_table_01.csv,P01,idle,table,,,,2026-11-16,Hanson,protocol v0.2; mount v1; orientation reference: X tilt 3.9 deg from horizontal
+P01_idle_lap_01.csv,P01,idle,lap,,,,2026-11-16,Hanson,protocol v0.2; mount v1
+P01_curl_slow_01.csv,P01,curl,slow,13,14,observer_adjusted,2026-11-16,Hanson,"protocol v0.2; mount v1; the file ends with the dumbbell raised, so the 14th rep is not complete inside it"
+P01_curl_normal_01.csv,P01,curl,normal,17,18,observer_adjusted,2026-11-16,Hanson,"protocol v0.2; mount v1; the file ends with the dumbbell raised, so the 18th rep is not complete inside it"
+P01_curl_fast_02.csv,P01,curl,fast,26,27,observer_adjusted,2026-11-16,Hanson,protocol v0.2; mount v1; the 27th rep came after the recording ended; take 01 discarded (wire came loose)
+P01_other_mixed_01.csv,P01,other,mixed,,,,2026-11-16,Hanson,"protocol v0.2; mount v1; pick up/put down, carry, lateral raises, front raises, free shaking; gyro exceeds the nominal 500 dps range and clips at 573 dps during free shaking (221 rows clipped)"
+P01_partial_mixed_01.csv,P01,partial,mixed,11,,imu_inferred,2026-11-16,Hanson,"protocol v0.2; mount v1; 10 half reps (about 65 deg), 5 reps with a hold at the top, then 3 + 3 full reps; no live count was taken: true_reps = 5 + 6 full-range reps read from the gx angle afterwards, a provisional label and not independent ground truth"

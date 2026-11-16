@@ -14,8 +14,9 @@ The first line after opening the port is dropped because it may be cut in half.
 If a jumper comes loose the sketch keeps printing, but the rows are useless: all zeros after
 a power glitch (the sensor wakes up in power-down), or the same values repeated about once a
 second while I2C reads time out. The recorder stops with an error in both cases, because such
-a file can look fine at a glance. Fix the wire, press RST on the Nano (or re-plug USB) and
-record again.
+a file can look fine at a glance. It also stops if the board goes silent after the take has
+started; that is timed on the computer's clock, so it works when no rows arrive at all.
+Fix the wire, press RST on the Nano (or re-plug USB) and record again.
 """
 import sys, time
 import serial
@@ -37,7 +38,9 @@ def is_sample(line):
 
 
 FROZEN_LIMIT = 10                       # identical consecutive rows (about 0.1 s) before giving up
-STALL_MS = 100                          # gap between samples that means the stream stalled
+STALL_MS = 100                          # gap between board timestamps that means samples were lost
+HOST_STALL_S = 0.5                      # computer-clock time without a valid row before giving up
+READ_TIMEOUT_S = 0.2                    # serial read timeout; must be shorter than HOST_STALL_S
 
 
 def fail(why, n, out):
@@ -45,11 +48,12 @@ def fail(why, n, out):
              f"wires, press RST on the Nano, wait 3 s, then record again. Delete {out}.")
 
 
-with serial.Serial(port, 115200, timeout=1) as ser, open(out, "w") as f:
+with serial.Serial(port, 115200, timeout=READ_TIMEOUT_S) as ser, open(out, "w") as f:
     f.write(HEADER + "\n")
     ser.readline()                      # possibly partial line
-    opened = time.time()
-    started = None
+    opened = time.monotonic()
+    started = None                      # computer time of the first valid row
+    last_good = None                    # computer time of the latest valid row
     n = 0
     frozen = 0
     last_values = None
@@ -57,9 +61,13 @@ with serial.Serial(port, 115200, timeout=1) as ser, open(out, "w") as f:
     try:
         while True:
             line = ser.readline().decode("ascii", "ignore").strip()
-            if not is_sample(line):
-                if started is None and time.time() - opened > 5:
-                    sys.exit(f"ERROR: no samples from {port} in 5 s. Is 04_imu_stream flashed?")
+            now = time.monotonic()
+            if not is_sample(line):         # read timed out, or the line is not a sample
+                if started is None:
+                    if now - opened > 5:
+                        sys.exit(f"ERROR: no samples from {port} in 5 s. Is 04_imu_stream flashed?")
+                elif now - last_good > HOST_STALL_S:
+                    fail(f"no samples from the board for {now - last_good:.1f} s", n, out)
                 continue
             t_ms, values = line.split(",", 1)
             frozen = frozen + 1 if values == last_values else 0
@@ -69,13 +77,14 @@ with serial.Serial(port, 115200, timeout=1) as ser, open(out, "w") as f:
             if t_last is not None and float(t_ms) - t_last > STALL_MS:
                 fail(f"sample stream stalled for {float(t_ms) - t_last:.0f} ms", n, out)
             if started is None:
-                started = time.time()
+                started = now
+            last_good = now
             f.write(line + "\n")
             n += 1
-            t_last = float(line.split(",")[0])
+            t_last = float(t_ms)
             if t_first is None:
                 t_first = t_last
-            if time.time() - started >= seconds:
+            if now - started >= seconds:
                 break
     except KeyboardInterrupt:
         pass
