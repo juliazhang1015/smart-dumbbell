@@ -8,4 +8,6 @@ First priorities are motion data quality, false counts during handling and heart
 
 `test_data_logger.py` is a unit test for the computer logger (`python3 -m unittest tests.test_data_logger` from the repository root); it is a software check, not an acceptance test.
 
+`test_record_serial.py` runs the IMU recorder `firmware/bringup/record_serial.py` against a scripted stand-in for the serial port (`python3 -m unittest tests.test_record_serial`). It checks that a normal take is saved and that a silent board, frozen values, lost samples, bad timestamps and non-finite values each stop the take without leaving a file. No board is involved, so it says nothing about the hardware.
+
 Use the [test record template](templates/test-record.md) and save completed records under `tests/results/`. Keep private raw recordings outside the public repository.
