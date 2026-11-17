@@ -40,6 +40,8 @@ dist/
 data/raw/
 data/private/
 data/session_logs/
+# A take the recorder did not finish (firmware/bringup/record_serial.py)
+*.csv.part
 logs/
 ml/checkpoints/
 
