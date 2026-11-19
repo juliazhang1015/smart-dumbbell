@@ -94,11 +94,14 @@ These checks were **not done** before this version was committed: the team chose
 
 `Smart_Dumbbell_planA_v07_print_plate.stl` holds the six production parts in print orientation in one file; `PRINT_SHEET.md` is the page that goes to the print staff with it. Checked: six separate watertight bodies, each with the same volume as its single-part file, all sitting on z = 0, 3.2 mm smallest gap.
 
+`Smart_Dumbbell_planA_v07_right_head_and_cap.stl` holds only the two parts that are new relative to the v0.4 set, which was already sent for printing: the right head and the right cap. It is the file submitted on 2026-11-19, with `PRINT_SHEET_right_head_and_cap.md`. The v0.4 `head_left`, `cap_left` and `grip` have the same mating dimensions (hexagon, wall, collar, grip clearance, lip clearance, screw positions and post radius were compared parameter by parameter) and are reused. The v0.4 `cap_right` would also fit, but it has three button holes and a 32 x 16 window, and its lip has to be trimmed at the four posts.
+
 ## Regenerate
 
 ```bash
 openscad -o head_right.stl -D 'part="head_right"' smart_dumbbell_planA_v07.scad
 openscad --export-format binstl -o Smart_Dumbbell_planA_v07_print_plate.stl -D 'part="plate"' smart_dumbbell_planA_v07.scad
+openscad --export-format binstl -o Smart_Dumbbell_planA_v07_right_head_and_cap.stl -D 'part="plate_right"' smart_dumbbell_planA_v07.scad
 openscad -o /tmp/clash.stl -D 'part="clash"' smart_dumbbell_planA_v07.scad      # must say the top level object is empty
 openscad -o /tmp/clash_cap.stl -D 'part="clash_cap"' smart_dumbbell_planA_v07.scad
 ```

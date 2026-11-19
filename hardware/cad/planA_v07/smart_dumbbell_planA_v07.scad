@@ -33,7 +33,7 @@
 //   same amount; nothing else moves.
 //
 // Values marked UNMEASURED are catalogue numbers or estimates. Measure the real part first.
-part = "assembly";  // head_left head_right cap_left cap_right grip max30102_carrier fit_coupon plate assembly fit_check clash clash_cap
+part = "assembly";  // head_left head_right cap_left cap_right grip max30102_carrier fit_coupon plate plate_right assembly fit_check clash clash_cap
 $fn=96;
 
 // ---------------- shared with v0.4 (do not change, printed parts depend on them) ----------------
@@ -392,6 +392,13 @@ module plate(){
  translate([2*dx-16,0,0])rotate([0,0,90])max30102_carrier();
 }
 
+// the two parts that are new relative to the v0.4 set already sent for printing: right head and right cap
+module plate_right(){
+ dy=hex_R*cos(30)+plate_gap/2;       // 49.3
+ translate([0, dy,0])shell_right();
+ translate([0,-dy,0])cap(true);
+}
+
 if(part=="head_left")shell_left();
 else if(part=="head_right")shell_right();
 else if(part=="cap_left")cap(false);
@@ -400,6 +407,7 @@ else if(part=="grip")grip();
 else if(part=="max30102_carrier")max30102_carrier();
 else if(part=="fit_coupon")fit_coupon();
 else if(part=="plate")plate();
+else if(part=="plate_right")plate_right();
 else if(part=="fit_check")fit_check();
 else if(part=="clash")intersection(){shell_right();envelopes();}
 else if(part=="clash_cap")intersection(){cap_installed();envelopes();}
