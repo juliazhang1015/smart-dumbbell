@@ -146,7 +146,8 @@ button_xy=[-22,-5];
 button_d=6.6;
 led_xy=[22,-5];
 led_d=4.0;
-cap_bank_port=true;            // v0.4 opening at the -Y edge; in this layout it is above the bank end
+cap_bank_port=true;            // 12 x 7 slot at the -Y edge, from v0.4: provision for a USB-C panel extension to
+                               // recharge the bank (docs/hardware.md asks for access to recharge it). See NOTES.md.
 
 module hexa(r,h){linear_extrude(height=h)circle(r=r,$fn=6);}
 module grip_bore(h){cylinder(h=h,r=grip_od/2+grip_clearance/2,$fn=128);}
