@@ -90,10 +90,15 @@ These checks were **not done** before this version was committed: the team chose
 - **Assembly order.** The pulse-sensor leads are soldered to the hub board and have little slack, and the board goes in from the open end of the head. Slide the board into its slots first, then feed the sensor down the grip bore to the window. With the sensor fixed first, the board cannot be lifted high enough to enter the slots.
 - The bank's own dimensions and the 4517's are still catalogue values.
 
+## Printing
+
+`Smart_Dumbbell_planA_v07_print_plate.stl` holds the six production parts in print orientation in one file; `PRINT_SHEET.md` is the page that goes to the print staff with it. Checked: six separate watertight bodies, each with the same volume as its single-part file, all sitting on z = 0, 3.2 mm smallest gap.
+
 ## Regenerate
 
 ```bash
 openscad -o head_right.stl -D 'part="head_right"' smart_dumbbell_planA_v07.scad
+openscad --export-format binstl -o Smart_Dumbbell_planA_v07_print_plate.stl -D 'part="plate"' smart_dumbbell_planA_v07.scad
 openscad -o /tmp/clash.stl -D 'part="clash"' smart_dumbbell_planA_v07.scad      # must say the top level object is empty
 openscad -o /tmp/clash_cap.stl -D 'part="clash_cap"' smart_dumbbell_planA_v07.scad
 ```
