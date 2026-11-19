@@ -74,6 +74,8 @@ It reaches in every case, but with an 8 cm cable and a long plug there are only 
 
 None of these checks involve a real part.
 
+One piece of physical evidence carries over. The v0.4 set (both heads, both caps, grip) was printed in white PLA by the RPC and collected on 2026-11-19. Hanson reports that the grip, heads and caps fit together closely. That is a hands-on check without measurements, but it covers the interfaces the v0.7 right head and right cap reuse unchanged: the collar and grip clearance, the cap lip and the screw positions. It says nothing about the parts of the right head that are new.
+
 ## Before printing `head_right`
 
 These checks were **not done** before this version was committed: the team chose to print first. The head is the longest print in the set, and two minutes with the real parts would settle the open numbers:
