@@ -2,9 +2,8 @@
 // Status 2026-11-19: renders in OpenSCAD 2026.10.11 (manifold backend). Not printed, not fitted to
 // any real part. Millimetres. Prototype enclosure only: not verified for loads.
 //
-// Built on the v0.6 draft (not in the repository). head_right changes and cap_right loses one slot;
-// every other part is the v0.6 geometry (v0.4 interfaces), so printed v0.4 head_left, cap_left and
-// grip stay usable.
+// Built on the v0.6 draft (not in the repository). Only head_right changes; every other part is
+// the v0.6 geometry (v0.4 interfaces), so printed v0.4/v0.6 parts other than head_right stay usable.
 //
 // Where v0.6 came from: the right head was rebuilt on the v0.4 interfaces; the cap_right windows
 // and tabs, the side window and max30102_carrier follow a teammate's CadQuery draft of v0.5.
@@ -25,9 +24,7 @@
 //      clears the bank by about 4 mm.
 //   3. A second window in the -Y flat for the bank's display. Bank orientation that the two
 //      windows assume: cable end towards the cap, pad/display face against the -Y wall.
-//   4. cap_right: the 12 x 7 slot at the edge is closed. It was left over from v0.4 and reaches
-//      nothing in this layout. The cap is otherwise the v0.6 one.
-//   5. part="fit_check" draws the plug and the cable; part="clash" and part="clash_cap" must render
+//   4. part="fit_check" draws the plug and the cable; part="clash" and part="clash_cap" must render
 //      empty (see NOTES.md).
 //
 // Still assumed, not measured (each is one parameter below):
@@ -149,8 +146,7 @@ button_xy=[-22,-5];
 button_d=6.6;
 led_xy=[22,-5];
 led_d=4.0;
-cap_bank_port=false;           // v0.4 slot at the -Y edge, meant for a USB-C panel extension. Closed in v0.7:
-                               // it sits above the bank's cable end and reaches nothing (the charging port is at the other end).
+cap_bank_port=true;            // v0.4 opening at the -Y edge; in this layout it is above the bank end
 
 module hexa(r,h){linear_extrude(height=h)circle(r=r,$fn=6);}
 module grip_bore(h){cylinder(h=h,r=grip_od/2+grip_clearance/2,$fn=128);}
