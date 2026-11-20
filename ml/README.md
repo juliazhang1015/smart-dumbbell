@@ -2,7 +2,7 @@
 
 Work split, interface contract, recording plan and timeline: `workplan.md` (agreed 2026-11-03). Recording protocol: `data-protocol.md`. Owner of this folder: Hanson He (classification line).
 
-Status 2026-11-03: no real recordings yet. The training pipeline below runs end to end on synthetic data and its C++ port compiles for the Nano ESP32; every performance number so far is from synthetic data and means nothing about real motion.
+Status 2026-11-20: Real IMU recordings from P01 and P02 are now available. The experimental Random Forest + V3 counter has preliminary real-data results; the original embedded LogReg/MLP pipeline has not yet been validated on real recordings.
 
 ## Pipeline (`train/`)
 
@@ -25,3 +25,67 @@ Features per window: mean, std, min, max of each of the six channels; mean and s
 Evaluation rule: split by participant before windowing; fit the scaler on training folds only; report the pooled confusion matrix and macro-F1 against AT-01 (≥ 0.85). Classification and repetition counting are separate tasks; the counter lives in `firmware/counter/` (Julia Zhang).
 
 Do not commit identifiable recordings. See `../data/README.md` and `../data/sessions/README.md`.
+
+## Experimental offline repetition counter (P01/P02)
+
+This section documents an experimental Python pipeline developed
+alongside the original embedded classification pipeline above.
+
+### Architecture
+
+1. Record six-axis IMU data (ax, ay, az, gx, gy, gz).
+2. Detect candidate curl repetitions using gyroscope-based cycle detection.
+3. Extract 25 statistical features from a two-second window before each candidate.
+4. Use a Random Forest classifier to distinguish curl, idle, and other activity.
+5. Accept a candidate repetition only when classified as curl.
+
+### Implementation
+
+| File | Purpose |
+|---|---|
+| `tools/offline_counter.py` | Initial rule-based repetition counter |
+| `tools/test_angle_counter.py` | Gyroscope angle-integration experiment |
+| `tools/test_cycle_counter.py` | V3 raise/lower cycle detection |
+| `tools/ml_rep_counter.py` | V3 counter combined with ML filtering |
+| `train/extract_features.py` | Extract 25 IMU features |
+| `train/train_classifier.py` | Train the Random Forest classifier |
+
+The Random Forest uses 200 trees, maximum depth 8,
+and balanced class weights.
+
+### Preliminary results
+
+| Recording | Observer/reference reps | V3 count | ML count |
+|---|---:|---:|---:|
+| P01 slow curl | 13 | 13 | 13 |
+| P01 normal curl | 17 | 17 | 17 |
+| P01 fast curl | 26 | 26 | 26 |
+| P02 normal curl | 2 | 2 | 2 |
+
+For the P01 Other Mixed recording, V3 produced seven
+false-positive candidates, all rejected by ML filtering.
+
+The P02 recording contains two completed curls followed
+by a stationary period. The classifier identified curl
+windows during the movements and idle windows after
+the participant stopped.
+
+### Evaluation limitations
+
+- The Random Forest was trained on P01 recordings.
+- P01 training-set results are not independent validation.
+- The P02 recording provides a preliminary independent
+  test, but contains only two repetitions.
+- More participants and independently labeled recordings
+  are needed to measure generalization.
+- The Random Forest pipeline currently runs offline in
+  Python and has not been deployed to the Nano ESP32.
+- The original embedded LogReg/MLP pipeline remains separate.
+
+### Next steps
+
+- Collect additional slow, normal, and fast curl recordings.
+- Collect more idle, partial-motion, and non-curl activities.
+- Evaluate classification using participant-independent splits.
+- Evaluate repetition count error against observer labels.
+- Investigate real-time integration after offline validation.
