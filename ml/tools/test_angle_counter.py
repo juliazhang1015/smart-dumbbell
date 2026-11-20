@@ -42,18 +42,19 @@ def count_angle_reps(path, min_range=80, return_tolerance=25):
     return reps, events
 
 
-files = [
-    ("P01_curl_slow_01.csv", 13),
-    ("P01_curl_normal_01.csv", 17),
-    ("P01_curl_fast_02.csv", 26),
-]
+if __name__ == "__main__":
+    files = [
+        ("P01_curl_slow_01.csv", 13),
+        ("P01_curl_normal_01.csv", 17),
+        ("P01_curl_fast_02.csv", 26),
+    ]
 
-for name, expected in files:
-    path = Path("data/sessions") / name
-    predicted, events = count_angle_reps(path)
+    for name, expected in files:
+        path = Path("data/sessions") / name
+        predicted, events = count_angle_reps(path)
 
-    print(f"\n{name}")
-    print(f"Expected: {expected}")
-    print(f"Predicted: {predicted}")
-    print(f"Difference: {predicted - expected:+d}")
-    print(f"Events: {events}")
+        print(f"\n{name}")
+        print(f"Expected: {expected}")
+        print(f"Predicted: {predicted}")
+        print(f"Difference: {predicted - expected:+d}")
+        print(f"Events: {events}")
