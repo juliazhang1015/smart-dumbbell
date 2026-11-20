@@ -2,7 +2,7 @@
 
 Work split, interface contract, recording plan and timeline: `workplan.md` (agreed 2026-11-03). Recording protocol: `data-protocol.md`. Owner of this folder: Hanson He (classification line).
 
-Status 2026-11-20: Real IMU recordings from P01 and P02 are now available. The experimental Random Forest + V3 counter has preliminary real-data results; the original embedded LogReg/MLP pipeline has not yet been validated on real recordings.
+Status 2026-11-20: Real IMU recordings from P01 and P02 are available. Hanson's embedded LogReg classification line reports preliminary P01/P02 leave-one-participant-out evaluation in PR #16; on-device performance and end-to-end integration still require hardware validation. The Random Forest + V3 pipeline below is a separate experimental offline counter, not the deployment classifier.
 
 ## Pipeline (`train/`)
 
@@ -65,22 +65,28 @@ and balanced class weights.
 For the P01 Other Mixed recording, V3 produced seven
 false-positive candidates, all rejected by ML filtering.
 
-The P02 recording contains two completed curls followed
-by a stationary period. The classifier identified curl
-windows during the movements and idle windows after
-the participant stopped.
+The local P02 experimental take contains two completed curls followed
+by a stationary period. Its raw CSV is not included in this PR, so
+this two-rep result is not independently reproducible from the repository.
+Do not confuse this take with the separately recorded P02 sessions already
+present on main. Window-level curl/idle observations are exploratory,
+not a labeled independent classification evaluation.
 
 ### Evaluation limitations
 
 - The Random Forest was trained on P01 recordings.
 - P01 training-set results are not independent validation.
-- The P02 recording provides a preliminary independent
-  test, but contains only two repetitions.
+- The local P02 two-rep take is a preliminary participant-independent
+  spot check only; its raw data is not published with this PR.
+- The P01 curl reference counts are `observer_adjusted`, not strict
+  observer-only ground truth under protocol v0.3.
 - More participants and independently labeled recordings
   are needed to measure generalization.
 - The Random Forest pipeline currently runs offline in
   Python and has not been deployed to the Nano ESP32.
-- The original embedded LogReg/MLP pipeline remains separate.
+- Hanson's 31-feature LogReg/MLP training and C++ export pipeline remains
+  the deployment-oriented classification line. This 25-feature Random Forest
+  is an offline research comparison, not a replacement.
 
 ### Next steps
 
