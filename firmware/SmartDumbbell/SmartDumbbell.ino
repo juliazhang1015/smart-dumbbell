@@ -1,4 +1,6 @@
 // ECE198 bench prototype. Arduino Nano ESP32, default Arduino pin numbering.
+// One sketch, two builds: USE_BLE 0 = Wi-Fi AP + HTTP only, USE_BLE 1 = also a BLE notify characteristic.
+#define USE_BLE 1
 #include <Wire.h>
 #include <WiFi.h>
 #include <WebServer.h>
@@ -6,9 +8,15 @@
 #include <Adafruit_SSD1306.h>
 #include <MAX30105.h>
 #include <heartRate.h>
+#if USE_BLE
+#include <BLEDevice.h>
+#include <BLE2902.h>
+#endif
 
 Adafruit_LSM6DSOX imu;
-Adafruit_SSD1306 oled(128,64,&Wire,-1);
+// 400 kHz during and after display(): the library default clkAfter=100000 would leave the shared
+// bus at 100 kHz for the IMU and MAX30102 after every refresh (measured on this board, 2026-11-06).
+Adafruit_SSD1306 oled(128,64,&Wire,-1,400000UL,400000UL);
 MAX30105 ppg;
 WebServer server(80);
 enum State { READY, RUNNING, PAUSED, DONE };
@@ -20,10 +28,59 @@ unsigned long activeMs=0, started=0, lastBeat=0, beepAt=0, session=0;
 unsigned long phaseAt=0, signalSince=0;
 bool lifting=false, contact=false;
 float firstSign=0;
+// Heart rate: mean of the last BEAT_AVG valid beat intervals, shown once two are available.
+const uint8_t BEAT_AVG=4;
+uint16_t beatRates[BEAT_AVG]; uint8_t beatN=0, beatI=0;
+// Rep gate: a counted rep must swing at least SWING_MIN_DEG about the handle axis and come back
+// to within RETURN_FRAC of that swing. Replayed on the P01/P02 recordings in data/sessions
+// (see README): clean curls unchanged, unrelated movement 85 -> 3 and 47 -> 9 false reps.
+const float SWING_MIN_DEG=60.0f, RETURN_FRAC=0.5f;
+const unsigned long LIFT_TIMEOUT_MS=8000;   // slowest rehab-pace rep seen so far is 5.0 s
 unsigned long elapsed(){return activeMs+(state==RUNNING ? millis()-started : 0);}
+
+#if USE_BLE
+// Little-endian packet: version, state, session (4), active ms (4),
+// reps (4), estimated BPM (2; zero means unavailable).
+const char* serviceId="823ef401-1d82-41f6-b689-68aedcbb1960";
+const char* sampleId="823ef402-1d82-41f6-b689-68aedcbb1960";
+BLEServer* bleServer;
+BLECharacteristic* bleSample;
+class ConnectionEvents : public BLEServerCallbacks {
+  void onDisconnect(BLEServer* server) override { server->startAdvertising(); }
+};
+void beginBluetooth(){
+  BLEDevice::init("SmartDumbbell");
+  bleServer=BLEDevice::createServer();
+  static ConnectionEvents events;
+  bleServer->setCallbacks(&events);
+  BLEService* service=bleServer->createService(serviceId);
+  bleSample=service->createCharacteristic(sampleId,
+    BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
+  bleSample->addDescriptor(new BLE2902());
+  uint8_t initial[16]={1};
+  bleSample->setValue(initial,sizeof(initial));
+  service->start();
+  BLEAdvertising* advertising=BLEDevice::getAdvertising();
+  advertising->addServiceUUID(serviceId);
+  advertising->setScanResponse(true);
+  advertising->start();
+}
+void publishBluetooth(){
+  uint8_t packet[16]={1,static_cast<uint8_t>(state)};
+  uint32_t ses=session, active=elapsed(), count=reps; uint16_t rate=bpm;
+  memcpy(packet+2,&ses,4);
+  memcpy(packet+6,&active,4);
+  memcpy(packet+10,&count,4);
+  memcpy(packet+14,&rate,2);
+  bleSample->setValue(packet,sizeof(packet));
+  if(bleServer->getConnectedCount()) bleSample->notify();
+}
+#endif
+
 void feedback(){
   digitalWrite(D5,HIGH); beepAt=millis();
 }
+void resetPulse(){ contact=false; bpm=0; lastBeat=0; beatN=0; }
 void changeState(bool hold){
   if(hold && state!=RUNNING && state!=PAUSED) return;
   if(state==RUNNING) activeMs+=millis()-started;
@@ -33,7 +90,7 @@ void changeState(bool hold){
     if(state!=PAUSED){ activeMs=0; reps=0; session++; }
     state=RUNNING; started=millis();
   }
-  lifting=false; contact=false; bpm=0; lastBeat=0;
+  lifting=false; resetPulse();
   digitalWrite(D7,state==RUNNING);
   feedback();
 }
@@ -59,36 +116,48 @@ void samplePulse(){
     long ir=ppg.getFIFOIR(); ppg.nextSample();
     bool beat=checkForBeat(ir);
     unsigned long now=millis();
-    if(state!=RUNNING || ir<50000){
-      contact=false; bpm=0; lastBeat=0; continue;
-    }
+    if(state!=RUNNING || ir<50000){ resetPulse(); continue; }
     if(!contact){contact=true;signalSince=now;}
     if(beat && now-signalSince>=1500){
       unsigned long interval=now-lastBeat;
-      bpm=(lastBeat && interval>=300 && interval<=1500) ? 60000/interval : 0;
+      if(lastBeat && interval>=300 && interval<=1500){
+        beatRates[beatI]=60000/interval; beatI=(beatI+1)%BEAT_AVG; if(beatN<BEAT_AVG)beatN++;
+        unsigned sum=0; for(uint8_t i=0;i<beatN;i++)sum+=beatRates[i];
+        bpm = beatN>=2 ? sum/beatN : 0;
+      }
       lastBeat=now;
     }
-    if(now-lastBeat>2000)bpm=0;
+    if(now-lastBeat>2000){bpm=0;beatN=0;}
   }
 }
 // Bench baseline: mount the gyro X axis along the elbow rotation axis.
-// Count two opposite strokes followed by a return to low angular speed.
+// A rep = one stroke, the opposite stroke, then low angular speed, with the swing gate above.
 void sampleMotion(){
   static unsigned long last=0;
   static bool returning=false;
+  static float swing=0, peak=0;          // integrated angle (rad) since the lift started, lift direction positive
   unsigned long now=millis();
   if(!hasImu || state!=RUNNING || now-last<10)return;
+  float dt=(now-last)*0.001f; if(dt>0.05f)dt=0.01f;   // first sample or resume after a pause
   last=now;
   sensors_event_t a,g,t;
   if(!imu.getEvent(&a,&g,&t))return;
   float speed=g.gyro.x;
-  if(lifting && now-phaseAt>5000){lifting=false;return;}
-  if(!lifting && fabs(speed)>0.9){
-    lifting=true; returning=false; phaseAt=now; firstSign=speed>0?1:-1;
-  }else if(lifting && now-phaseAt>200 && speed*firstSign< -0.9){
-    returning=true;
-  }else if(lifting && returning && fabs(speed)<0.35 && now-phaseAt>450){
-    reps++; lifting=false; feedback();
+  if(lifting){
+    swing+=speed*dt*firstSign; if(swing>peak)peak=swing;
+    if(now-phaseAt>LIFT_TIMEOUT_MS){lifting=false;return;}
+  }
+  if(!lifting){
+    if(fabs(speed)>0.9){
+      lifting=true; returning=false; phaseAt=now; firstSign=speed>0?1:-1;
+      swing=fabs(speed)*dt; peak=swing;
+    }
+  }else if(!returning){
+    if(now-phaseAt>200 && speed*firstSign< -0.9) returning=true;
+  }else if(fabs(speed)<0.35 && now-phaseAt>450){
+    if(peak<SWING_MIN_DEG*DEG_TO_RAD){ lifting=false; }                 // small jiggle, not a rep
+    else if(swing<=RETURN_FRAC*peak){ reps++; lifting=false; feedback(); }
+    // else: settled while still raised (overshoot bounce or incomplete lowering) -> wait for the real return
   }
 }
 String row(){
@@ -117,6 +186,9 @@ void setup(){
   server.on("/",[](){server.send_P(200,"text/html",page);});
   server.on("/sample",[](){server.send(200,"text/plain",row());});
   server.begin();
+#if USE_BLE
+  beginBluetooth();
+#endif
 }
 void loop(){
   if (Serial.available() && Serial.read() == '?') {
@@ -134,6 +206,9 @@ void loop(){
   static unsigned long lastDisplay=0;
   if(millis()-lastDisplay<250)return;
   lastDisplay=millis();
+#if USE_BLE
+  publishBluetooth();
+#endif
   Serial.println(row());
   if(hasOled){
     oled.clearDisplay();oled.setCursor(0,0);oled.setTextColor(SSD1306_WHITE);
@@ -144,4 +219,3 @@ void loop(){
     oled.display();
   }
 }
-
