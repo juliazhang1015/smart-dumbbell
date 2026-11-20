@@ -57,19 +57,20 @@ def count_cycles(path, min_raise=70, min_lower=70,
     return reps, events
 
 
-files = [
-    ("P01_curl_slow_01.csv", 13),
-    ("P01_curl_normal_01.csv", 17),
-    ("P01_curl_fast_02.csv", 26),
-]
+if __name__ == "__main__":
+    files = [
+        ("P01_curl_slow_01.csv", 13),
+        ("P01_curl_normal_01.csv", 17),
+        ("P01_curl_fast_02.csv", 26),
+    ]
 
-for name, expected in files:
-    predicted, events = count_cycles(
-        Path("data/sessions") / name
-    )
+    for name, expected in files:
+        predicted, events = count_cycles(
+            Path("data/sessions") / name
+        )
 
-    print(f"\n{name}")
-    print(f"Expected: {expected}")
-    print(f"Predicted: {predicted}")
-    print(f"Difference: {predicted - expected:+d}")
-    print(f"Events: {events}")
+        print(f"\n{name}")
+        print(f"Expected: {expected}")
+        print(f"Predicted: {predicted}")
+        print(f"Difference: {predicted - expected:+d}")
+        print(f"Events: {events}")
