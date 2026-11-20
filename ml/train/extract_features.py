@@ -5,8 +5,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-DATA_DIR = Path("data/sessions")
-OUTPUT = Path("ml/train/p01_features.csv")
+ROOT = Path(__file__).resolve().parents[2]
+DATA_DIR = ROOT / "data/sessions"
+OUTPUT = Path(__file__).resolve().with_name("p01_features.csv")
 
 AXES = ["ax", "ay", "az", "gx", "gy", "gz"]
 
@@ -87,6 +88,9 @@ def main():
                     records.append(features)
 
                 start += 1.0
+
+    if not records:
+        raise ValueError("No P01 windows contain enough samples for training")
 
     result = pd.DataFrame(records)
 

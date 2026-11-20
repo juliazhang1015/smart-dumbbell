@@ -1,14 +1,34 @@
+"""V3 offline raise/lower cycle detector."""
+
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
 
 
 def count_cycles(path, min_raise=70, min_lower=70,
                  threshold=20, smooth_window=10):
-    d = pd.read_csv(path)
+    return count_cycles_from_samples(
+        pd.read_csv(path), min_raise, min_lower, threshold, smooth_window
+    )
 
-    t = (d.t_ms - d.t_ms.iloc[0]).to_numpy(dtype=float) / 1000
-    gx = d.gx.rolling(
+
+def count_cycles_from_samples(samples, min_raise=70, min_lower=70,
+                              threshold=20, smooth_window=10):
+    required = {"t_ms", "gx"}
+    missing = required - set(samples.columns)
+    if missing:
+        raise ValueError(f"Missing IMU columns: {', '.join(sorted(missing))}")
+
+    timestamps = samples["t_ms"].to_numpy(dtype=float)
+    gyro_x = samples["gx"].astype(float)
+    if timestamps.size < 2 or not np.isfinite(timestamps).all() or np.any(np.diff(timestamps) <= 0):
+        raise ValueError("Expected at least two finite, strictly increasing IMU timestamps")
+    if not np.isfinite(gyro_x).all():
+        raise ValueError("Expected finite IMU gx samples")
+
+    t = (timestamps - timestamps[0]) / 1000
+    gx = gyro_x.rolling(
         smooth_window, center=True, min_periods=1
     ).mean().to_numpy()
 

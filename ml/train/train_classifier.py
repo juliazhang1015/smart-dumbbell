@@ -6,49 +6,56 @@ import joblib
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 
-DATA_PATH = Path("ml/train/p01_features.csv")
-MODEL_PATH = Path("ml/train/activity_classifier.joblib")
+TRAIN_DIR = Path(__file__).resolve().parent
+DATA_PATH = TRAIN_DIR / "p01_features.csv"
+MODEL_PATH = TRAIN_DIR / "activity_classifier.joblib"
 
-df = pd.read_csv(DATA_PATH)
 
-metadata = ["label", "source_file", "start_s"]
-feature_columns = [c for c in df.columns if c not in metadata]
+def main():
+    df = pd.read_csv(DATA_PATH)
 
-X = df[feature_columns]
-y = df["label"]
+    metadata = ["label", "source_file", "start_s"]
+    feature_columns = [c for c in df.columns if c not in metadata]
 
-model = RandomForestClassifier(
-    n_estimators=200,
-    max_depth=8,
-    min_samples_leaf=3,
-    class_weight="balanced",
-    random_state=42,
-    n_jobs=-1,
-)
+    X = df[feature_columns]
+    y = df["label"]
 
-model.fit(X, y)
+    model = RandomForestClassifier(
+        n_estimators=200,
+        max_depth=8,
+        min_samples_leaf=3,
+        class_weight="balanced",
+        random_state=42,
+        n_jobs=-1,
+    )
 
-MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+    model.fit(X, y)
 
-joblib.dump(
-    {
-        "model": model,
-        "feature_columns": feature_columns,
-        "classes": list(model.classes_),
-    },
-    MODEL_PATH,
-)
+    MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-print("Training complete!")
-print(f"Training windows: {len(X)}")
-print(f"Features: {len(feature_columns)}")
-print(f"Classes: {list(model.classes_)}")
-print(f"Model saved: {MODEL_PATH}")
+    joblib.dump(
+        {
+            "model": model,
+            "feature_columns": feature_columns,
+            "classes": list(model.classes_),
+        },
+        MODEL_PATH,
+    )
 
-importance = pd.Series(
-    model.feature_importances_,
-    index=feature_columns,
-).sort_values(ascending=False)
+    print("Training complete!")
+    print(f"Training windows: {len(X)}")
+    print(f"Features: {len(feature_columns)}")
+    print(f"Classes: {list(model.classes_)}")
+    print(f"Model saved: {MODEL_PATH}")
 
-print("\nTop 10 important features:")
-print(importance.head(10).to_string())
+    importance = pd.Series(
+        model.feature_importances_,
+        index=feature_columns,
+    ).sort_values(ascending=False)
+
+    print("\nTop 10 important features:")
+    print(importance.head(10).to_string())
+
+
+if __name__ == "__main__":
+    main()

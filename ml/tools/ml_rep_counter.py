@@ -10,18 +10,17 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "ml" / "tools"))
 sys.path.insert(0, str(ROOT / "ml" / "train"))
 
-from test_cycle_counter import count_cycles
+from test_cycle_counter import count_cycles_from_samples
 from extract_features import extract_window_features
 
 
 def count_ml_reps(csv_path, model_path):
     df = pd.read_csv(csv_path)
+    candidate_count, events = count_cycles_from_samples(df)
 
     bundle = joblib.load(model_path)
     model = bundle["model"]
     feature_columns = bundle["feature_columns"]
-
-    candidate_count, events = count_cycles(csv_path)
 
     time_s = (
         df["t_ms"].to_numpy(dtype=float)

@@ -2,7 +2,7 @@
 
 Work split, interface contract, recording plan and timeline: `workplan.md` (agreed 2026-11-03). Recording protocol: `data-protocol.md`. Owner of this folder: Hanson He (classification line).
 
-Status 2026-11-20: Real IMU recordings from P01 and P02 are available. Hanson's embedded LogReg classification line reports preliminary P01/P02 leave-one-participant-out evaluation in PR #16; on-device performance and end-to-end integration still require hardware validation. The Random Forest + V3 pipeline below is a separate experimental offline counter, not the deployment classifier.
+Status 2026-11-03: no real recordings yet. The training pipeline below runs end to end on synthetic data and its C++ port compiles for the Nano ESP32; every performance number so far is from synthetic data and means nothing about real motion.
 
 ## Pipeline (`train/`)
 
@@ -26,10 +26,25 @@ Evaluation rule: split by participant before windowing; fit the scaler on traini
 
 Do not commit identifiable recordings. See `../data/README.md` and `../data/sessions/README.md`.
 
-## Experimental offline repetition counter (P01/P02)
+## Experimental offline repetition counter (Julia Zhang)
 
-This section documents an experimental Python pipeline developed
-alongside the original embedded classification pipeline above.
+This Python experiment combines the V3 repetition counter with a 25-feature
+Random Forest for offline activity filtering. Hanson He owns the formal
+31-feature classification pipeline above, including the LogReg model,
+C++ export and firmware inference. [PR #16](https://github.com/juliazhang1015/smart-dumbbell/pull/16)
+tracks Hanson's initial P01/P02 evaluation and firmware shadow-mode work.
+
+From the repository root, using the virtual environment created above:
+
+```bash
+.venv/bin/python ml/train/extract_features.py
+.venv/bin/python ml/train/train_classifier.py
+.venv/bin/python ml/tools/test_cycle_counter.py
+.venv/bin/python ml/tools/ml_rep_counter.py
+```
+
+This trains on the listed P01 recordings and replays the P01 corpus.
+Feature CSVs and the Random Forest model bundle are generated locally.
 
 ### Architecture
 
@@ -60,17 +75,16 @@ and balanced class weights.
 | P01 slow curl | 13 | 13 | 13 |
 | P01 normal curl | 17 | 17 | 17 |
 | P01 fast curl | 26 | 26 | 26 |
-| P02 normal curl | 2 | 2 | 2 |
 
 For the P01 Other Mixed recording, V3 produced seven
 false-positive candidates, all rejected by ML filtering.
 
-The local P02 experimental take contains two completed curls followed
-by a stationary period. Its raw CSV is not included in this PR, so
-this two-rep result is not independently reproducible from the repository.
-Do not confuse this take with the separately recorded P02 sessions already
-present on main. Window-level curl/idle observations are exploratory,
-not a labeled independent classification evaluation.
+A separate local spot check with two completed curls followed by idle
+returned two repetitions with both V3 and Random Forest filtering. That
+CSV is unavailable for repository replay. The shared
+[sessions.csv](../data/sessions/sessions.csv) lists the official P02
+recordings. Store experimental captures outside `data/sessions/` so
+the formal classifier's file scan uses the shared recordings.
 
 ### Evaluation limitations
 
@@ -84,9 +98,6 @@ not a labeled independent classification evaluation.
   are needed to measure generalization.
 - The Random Forest pipeline currently runs offline in
   Python and has not been deployed to the Nano ESP32.
-- Hanson's 31-feature LogReg/MLP training and C++ export pipeline remains
-  the deployment-oriented classification line. This 25-feature Random Forest
-  is an offline research comparison, not a replacement.
 
 ### Next steps
 

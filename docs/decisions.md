@@ -30,6 +30,7 @@ The AI rendering illustrates appearance and is not a dimensional reference. Use 
 - Budget: spent CAD 119.55 to date (DigiKey 86.00 + power bank 33.55), over the original CAD 100 ceiling. The team said on 2026-11-01 that raising the ceiling is acceptable; agree and record the new figure before the enclosure purchase.
 - Should users be able to change and persist targets directly on the dumbbell? Currently targets are set from the computer.
 - Should the device store complete offline history for later synchronization? Not included in the current specification.
+- Which integrated sketch is the demo firmware, and is Bluetooth LE in scope? On 2026-11-19 Hanson He chose Zoe Wang's `firmware/SmartDumbbell` for the soldered board; it still lacks the classifier (`firmware/app` has it). PR #15 added a BLE characteristic next to the specified Wi-Fi AP + HTTP interface (FR-11/12) with no receiver or test; it is kept as a build option (`USE_BLE`) until the team decides whether to specify it or drop it.
 
 Record a dated decision, reason, supporting evidence and affected files when any baseline choice changes.
 
