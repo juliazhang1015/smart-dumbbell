@@ -47,3 +47,10 @@ ml/checkpoints/
 
 # Computer logger output (software/data_logger.py)
 software/*.csv
+
+# Local experimental ML artifacts
+ml/train/*.joblib
+ml/train/*_features.csv
+
+# Local P02 recordings (keep metadata in sessions.csv)
+data/sessions/P02_*.csv
