@@ -86,6 +86,18 @@ def features_batch(ws: np.ndarray) -> np.ndarray:
     return np.stack([features(w) for w in ws]) if len(ws) else np.empty((0, N_FEATURES), np.float32)
 
 
+def rotate_about_x(ws: np.ndarray, degrees: float) -> np.ndarray:
+    """Rotate the sensor frame of raw windows (n, window, 6) about X, the handle axis: the same
+    motion with the dumbbell held at another angle. Training-only; the firmware never calls it."""
+    t = np.radians(degrees)
+    c, s = np.cos(t), np.sin(t)
+    r = np.array([[1, 0, 0], [0, c, -s], [0, s, c]], dtype=np.float32)
+    out = ws.copy()
+    out[:, :, 0:3] = ws[:, :, 0:3] @ r.T
+    out[:, :, 3:6] = ws[:, :, 3:6] @ r.T
+    return out
+
+
 def read_excluded(path: Path) -> dict:
     """excluded.csv (columns file, reason) -> {file name: reason}. Missing file -> {}."""
     if not path.exists():

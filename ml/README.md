@@ -24,6 +24,8 @@ Features per window: mean, std, min, max of each of the six channels; mean and s
 
 Files listed in `data/sessions/excluded.csv`, with the reason for each, are left out of training and evaluation; `--include-excluded` uses every file. The recordings themselves stay in `data/sessions/` and in `sessions.csv`.
 
+`train.py` also adds training copies of the idle windows rotated by ±90° about X, the handle axis, so that a dumbbell held upright while standing still reads as idle (P01 held it upright, everyone else level). Held-out participants are evaluated on unmodified recordings. `--no-augment` switches it off. It changes only the training set: the 31 features and the firmware are unchanged.
+
 Evaluation rule: split by participant before windowing; fit the scaler on training folds only; report the pooled confusion matrix and macro-F1 against AT-01 (≥ 0.85). Classification and repetition counting are separate tasks; the counter lives in `firmware/counter/` (Julia Zhang).
 
 Do not commit identifiable recordings. See `../data/README.md` and `../data/sessions/README.md`.
