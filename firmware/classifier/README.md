@@ -1,6 +1,6 @@
 # classifier — on-device curl / idle / other model
 
-Status 2026-11-03: compiles for `arduino:esp32:nano_nora` (Flash 10 %, RAM 12 %); host self-test passes; **not yet run on the board**. The two generated headers currently in this folder come from **synthetic** data and only prove the pipeline; replace them after the first real training run.
+Status 2026-11-19: `model_weights.h` and `selftest.h` now come from the first training run on real recordings (P01 + P02, leave-one-participant-out macro-F1 0.937; see `ml/model-card.md` for the limits). Host self-test passes (3.2e-7); compiles for `arduino:esp32:nano_nora` (Flash 10 %). Still **not run on the board** as a standalone sketch; the same code runs inside `firmware/SmartDumbbell` in shadow mode. Copies of the three headers live in `firmware/SmartDumbbell/` and `firmware/app/` (weights only) — regenerate here and copy.
 
 ## What it does
 

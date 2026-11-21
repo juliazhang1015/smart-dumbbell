@@ -2,7 +2,7 @@
 
 Zoe Wang's sketch for the soldered board (PR #15, 2026-11-18), tidied on 2026-11-19 by Hanson He: the plain and BLE copies were merged into one file behind `USE_BLE`, the backup `.txt` was dropped (git history is the backup), and the fixes listed below were applied. It descends from `firmware/demo/smart_dumbbell_demo.ino` (Julia Zhang, 2026-11-08).
 
-Status 2026-11-19: both builds compile for `arduino:esp32:nano_nora` (`USE_BLE 0`: Flash 778 kB / 24 %, static RAM 57.5 kB / 17 %; `USE_BLE 1`: 1368 kB / 43 %, 78.5 kB / 23 %). The rep rule was replayed offline on the P01/P02 recordings (table below). **Not yet run on hardware since these edits** — flash, press `?` on the serial monitor, and check the three module flags before trusting anything else.
+Status 2026-11-19 (second revision): the curl/idle/other classifier now runs on the board in shadow mode and the counter prints every swing for per-user calibration. Both builds compile for `arduino:esp32:nano_nora` (`USE_BLE 0`: Flash 788 kB / 25 %, static RAM 67.7 kB / 20 %; `USE_BLE 1`: 1378 kB / 43 %, 88.6 kB / 27 %); `firmware/classifier` and `firmware/app` still compile with the new weights. The rep rule was replayed offline on the P01/P02 recordings (table below). **Not yet run on hardware since these edits** — flash, press `?` on the serial monitor, and check the three module flags before trusting anything else.
 
 ## Build
 
@@ -13,7 +13,7 @@ arduino-cli compile --fqbn arduino:esp32:nano_nora firmware/SmartDumbbell
 arduino-cli upload  --fqbn arduino:esp32:nano_nora -p /dev/cu.usbmodem<id> firmware/SmartDumbbell
 ```
 
-Libraries: Adafruit LSM6DS, Adafruit SSD1306 / GFX / BusIO, SparkFun MAX3010x (`MAX30105.h`, `heartRate.h`); BLE comes with the ESP32 core.
+Libraries: Adafruit LSM6DS, Adafruit SSD1306 / GFX / BusIO, SparkFun MAX3010x (`MAX30105.h`, `heartRate.h`); BLE comes with the ESP32 core. `classifier.h`, `model_weights.h` and `selftest.h` are copies of `firmware/classifier/` — regenerate there (see `ml/model-card.md`) and copy, do not edit here.
 
 ## Wiring assumed by the code
 
@@ -28,9 +28,17 @@ Button: short press = start / pause / resume, hold ≥ 1.2 s = end. A new sessio
 
 ## Outputs
 
-- Serial 115200: `session,state,active_ms,reps,bpm` every 250 ms; send `?` to print module flags and an I2C scan.
-- Wi-Fi AP `SmartDumbbell` / `curl198demo`: `http://192.168.4.1/` shows the live row and offers a CSV download; `/sample` returns the raw row.
-- BLE (`USE_BLE 1`): device `SmartDumbbell`, service `823ef401-…`, characteristic `823ef402-…` (read + notify), 16-byte little-endian packet: `u8 version=1, u8 state (0 Ready 1 Running 2 Paused 3 Done), u32 session, u32 active_ms, u32 reps, u16 bpm (0 = unavailable)`, updated every 250 ms. No receiver exists in this repo yet.
+- Serial 115200: `session,state,active_ms,reps,bpm,label` every 250 ms; `C,<t_ms>,<label>,<conf>,<inference_us>` once per second (classifier, `ml/workplan.md` section 4); `SWING,<t_ms>,<deg>,rep=N | small | timeout` every time the counter settles a candidate; `SELFTEST,PASS|FAIL,...` once at boot; send `?` to print module flags, the late-sample count and an I2C scan.
+- Wi-Fi AP `SmartDumbbell` / `curl198demo`: `http://192.168.4.1/` shows the live row and offers a CSV download (columns `session,state,active_ms,reps,bpm,label`); `/sample` returns the raw row.
+- BLE (`USE_BLE 1`): device `SmartDumbbell`, service `823ef401-…`, characteristic `823ef402-…` (read + notify), 17-byte little-endian packet: `u8 version=1, u8 state (0 Ready 1 Running 2 Paused 3 Done), u32 session, u32 active_ms, u32 reps, u16 bpm (0 = unavailable), u8 label (0 curl 1 idle 2 other, 255 none yet)`, updated every 250 ms. No receiver exists in this repo yet.
+
+## Classifier (shadow mode)
+
+The IMU is now read on a 104 Hz schedule (`±4 g`, `±500 dps`, the recording settings) into a 2 s ring buffer; once per second `clf_features` + `clf_infer` from `classifier.h` produce a label and confidence. The label is shown on the OLED's last line (`ML: curl 93%`), appended to the serial / CSV row and the BLE packet, and printed as a `C,...` line. **It does not gate the counter**: a wrong label changes nothing on the Reps line. At boot the sketch runs the same self-test as `firmware/classifier` and prints `SELFTEST,PASS,...,features+inference_us=N`; record that number in `ml/model-card.md` after the first board run. The model, its data (2 participants, mount v1) and its known failure are described in `ml/model-card.md` — read the Limits section before claiming anything about it.
+
+## Calibrating the swing threshold for a user
+
+`SWING_MIN_DEG` is per user. Flash, start a session, have the user do ten full-range curls at their normal pace, and read the `SWING,<t>,<deg>,rep=N` lines: take the median swing and set `SWING_MIN_DEG` to about 0.7 × that value, re-flash, then do ten half curls and check they print `small`. Write the value and the user code in the test record. The default 60° counts every complete curl but also half curls.
 
 ## Rep rule and what it does on the recordings
 
@@ -47,7 +55,18 @@ Replay of exactly this state machine on `data/sessions` (scratch script, 104 Hz 
 | P01 other_mixed | 0 | 47 | 9 |
 | P02 other_mixed | 0 | 85 | 3 |
 
-So: clean curls within ±2, unrelated movement mostly rejected, **half-range reps are still counted** (P02's half curls swing 90–100°, more than P01's full curls at 105–120°, so a fixed angle cannot separate them without per-user calibration or the classifier in `firmware/classifier`). AT-02/AT-03 are not met by this rule alone; it is a bench baseline, as the comment in the sketch says.
+So with the 60° default: clean curls within ±2, unrelated movement mostly rejected, **half-range reps are still counted** (P02's half curls swing 90–100°, more than P01's full curls at 105–120°, so one fixed angle cannot separate them). With a per-user threshold of 0.7 × the full swing the same replay gives:
+
+| File | Labelled | 60° | per user (P01 80°, P02 105°) |
+|---|---|---|---|
+| P01 curl fast / normal / slow | 26 / 17 / 13 | 26 / 17 / 13 | 26 / 17 / 13 |
+| P01 partial_mixed | 11 | 18 | 10 |
+| P01 other_mixed | 0 | 9 | 2 |
+| P02 curl fast / normal / slow | 23 / 9 / 8 | 21 / 9 / 7 | 21 / 9 / 7 |
+| P02 partial_mixed | 8 | 17 | 8 |
+| P02 other_mixed | 0 | 3 | 0 |
+
+Above about 0.75 × the full swing, fast complete curls start to be dropped. A calibrated threshold is a single-user result and must be reported as such; it is not the general AT-02/AT-03 evidence.
 
 ## Other changes on 2026-11-19
 
@@ -57,7 +76,7 @@ So: clean curls within ±2, unrelated movement mostly rejected, **half-range rep
 
 ## Known limits
 
-- No classifier: `curl` / `idle` / `other` is not evaluated, so counting while walking or shaking is only reduced, not prevented.
+- The classifier runs but does not gate counting, so counting while walking or shaking is only reduced by the swing gate, not prevented. Gating is a one-line change (`firmware/app` has it) once the model is validated on the assembled dumbbell.
 - Heart rate has no validity flag beyond "0 = none"; the earlier static test read 9–14 bpm high with this library (`docs/handoff.md`).
 - The AP password is in the source. It is a demo credential, not a secret, but change it before any public demo.
 - BLE is not in `docs/specification.md`; see the open item in `docs/decisions.md`.
