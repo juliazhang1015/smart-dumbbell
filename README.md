@@ -22,6 +22,7 @@ A proposed lightweight smart dumbbell for CCCARE participants who can independen
 - [Research assignments](docs/research-plan.md)
 - [Pitch deck](presentation/Smart_Dumbbell_Pitch_Waterloo_v02.pptx), [speaker script](presentation/speaker_script.txt), and [editable script](presentation/Smart_Dumbbell_Speaker_Script_v02.docx)
 - [CAD model](hardware/cad/Smart_Dumbbell_Concept_v01.dwg) and [model notes](hardware/cad/MODEL_NOTES.txt)
+- [Enclosure plan A v0.7](hardware/cad/planA_v07/NOTES.md): printable OpenSCAD draft with STL files; not yet printed or fitted
 - [Schematic, wiring diagram and net list, v1](hardware/wiring/README.md)
 
 ## Version 1 scope
