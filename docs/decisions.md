@@ -36,6 +36,13 @@ Record a dated decision, reason, supporting evidence and affected files when any
 
 ## Decision log
 
+### 2026-11-19: Recording target reduced from six participants to the four team members
+
+- **Decision:** `ml/data-protocol.md` v0.3 sets the participant target at four, all team members (P01–P04), instead of the v0.2 target of at least six covering both hands and both strength-training groups. Data volume per class drops below the 10-minute figure in the protocol's section 10.
+- **Reason:** The deliverable is due 2026-11-21 and recruiting outside volunteers in the remaining time is not realistic; the course volunteer requirements were never confirmed. The number was the team's own planning target (`ml/workplan.md`, 2026-11-03), not a course requirement — AT-01 in `docs/specification.md` requires held-out participants but no count.
+- **Consequence:** AT-01 evidence is reported as "4 participants, all team members, leave-one-participant-out"; it is not presented as meeting the original data plan. The model card keeps the warning that posture, not motion, can be learned from so few people.
+- **Affected files:** `ml/data-protocol.md`, `ml/model-card.md`, `ml/recording-checklist.md`, `docs/decisions.md`.
+
 ### 2026-11-03: Motion ML work split into two owned lines
 
 - **Decision:** Movement classification (FR-03, FR-04, AT-01) and repetition counting with on-device integration (FR-02, FR-05, FR-06, AT-02, AT-03) are two separately owned lines, each with its own files, branch, issue and documentation. The only shared contract is the classifier output (`t_ms,label,conf`, one result per second over a 2 s window at 104 Hz), recorded as a draft in `ml/workplan.md` section 4 and to be confirmed in the week of 2026-11-04. Anonymised recordings are committed under `data/sessions/` (participant codes only); `data/raw/` and `data/private/` stay ignored for anything that cannot be anonymised.

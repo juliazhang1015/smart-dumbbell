@@ -1,6 +1,6 @@
 # Motion classification recording protocol
 
-Version v0.2, 2026-11-16 (v0.1: 2026-11-03; v0.2 records the mounting used from P01 onward). Owner: Hanson He. Resolve **TBD** items before recording the first participant. **Proposed** items require team agreement.
+Version v0.3, 2026-11-19 (v0.1: 2026-11-03; v0.2, 2026-11-16, records the mounting used from P01 onward; v0.3 reduces the participant target to the four team members, see `docs/decisions.md`). Owner: Hanson He. Resolve **TBD** items before recording the first participant. **Proposed** items require team agreement.
 
 ## 1. Purpose
 
@@ -32,7 +32,7 @@ Route USB behind the hand with at least 1 m of slack.
 
 ## 4. Participants
 
-Use `P01`, `P02`, etc. Hanson keeps any identity mapping outside the repository. Record only hand (L/R) and regular strength-training experience (Y/N), not age, height or medical history. Explain what is recorded, storage and the option to stop; confirm course volunteer requirements before collection (pending). Target at least six participants, including both hands and training-experience groups; teammates may participate.
+Use `P01`, `P02`, etc. Hanson keeps any identity mapping outside the repository. Record only hand (L/R) and regular strength-training experience (Y/N), not age, height or medical history. Explain what is recorded, storage and the option to stop; confirm course volunteer requirements before collection (pending). Target revised on 2026-11-19 (v0.3): **four participants, the four team members**, recorded before the 2026-11-21 deadline; no outside volunteers. The v0.2 target of six with both hands and both training-experience groups is not reached and every report of the model states the actual count and that all participants are team members.
 
 ## 5. Labels
 
@@ -102,15 +102,17 @@ Do not commit video, audio, names, identity mappings or non-anonymous notes. Do 
 
 ## 10. Volume and progress
 
-| Category | Per participant | Six participants | Target |
+| Category | Per participant | Four participants (v0.3 target) | v0.2 target (six) |
 |---|---|---|---|
-| curl | 2 min | 12 min | >=10 min |
-| idle | 1.5 min | 9 min | >=10 min; add a seventh participant's idle data |
-| other | 2 min | 12 min | >=10 min |
-| partial | 1 min | 6 min | Counter checks; no minimum |
+| curl | 2 min | 8 min | >=10 min, not reached |
+| idle | 1.5 min | 6 min | >=10 min, not reached |
+| other | 2 min | 8 min | >=10 min, not reached |
+| partial | 1 min | 4 min | Counter checks; no minimum |
 
 Track progress in `sessions.csv`.
 
 ## 11. Protocol changes
 
 Changes to equipment/settings, mounting, labels or naming may make earlier data incompatible. Update the version/date here and record each dataset's protocol version in metadata notes.
+
+- v0.3 (2026-11-19): participant target four team members instead of six; section 10 volumes recomputed. Recording procedure, mounting, labels and naming unchanged, so v0.2 recordings stay compatible. A step-by-step checklist for one participant is in `recording-checklist.md`.
