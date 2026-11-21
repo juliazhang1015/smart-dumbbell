@@ -3,7 +3,7 @@
 ## Identification
 
 - Date: 2026-11-03
-- Tester: Hanson He (wiring); upload and serial capture run by Claude from Hanson's laptop
+- Tester: Hanson He (wiring)
 - Related issue: none
 - Requirement / acceptance-test ID: precondition for FR-03 (motion acquisition); not an acceptance test
 - Commit SHA: sketch `firmware/bringup/03_i2c_scan` at 17ac5fa

@@ -3,7 +3,7 @@
 ## Identification
 
 - Date: 2026-11-03 (late evening)
-- Tester: Hanson He (wiring, visual check); upload run by Claude
+- Tester: Hanson He (wiring, visual check)
 - Related issue: none
 - Requirement / acceptance-test ID: precondition for FR-09 (display); not an acceptance test
 - Commit SHA: sketch `firmware/bringup/07_oled_buttons` at d896bd5
