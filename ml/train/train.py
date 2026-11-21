@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Train and evaluate the curl / idle / other classifier.
 
-usage: python3 ml/train/train.py --data data/sessions --out ml/results [--model logreg|mlp]
+usage: python3 ml/train/train.py --data data/sessions --out ml/results [--model logreg|mlp] [--include-excluded]
+
+Files listed in <data>/excluded.csv (columns file, reason) are left out of training and of the
+evaluation; --include-excluded uses every file.
 
 Evaluation is leave-one-participant-out (windows from the held-out person are never
 seen in training or in scaler fitting). Reports per-fold and pooled confusion matrix and
@@ -22,7 +25,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import StandardScaler
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import CLASSES, FEATURE_NAMES, FS, HOP, WINDOW, load_dataset  # noqa: E402
+from common import CLASSES, FEATURE_NAMES, FS, HOP, WINDOW, load_dataset, read_excluded  # noqa: E402
 from export_c import write_header, write_selftest_header  # noqa: E402
 
 
@@ -48,10 +51,14 @@ def main():
     ap.add_argument("--out", type=Path, default=Path("ml/results"))
     ap.add_argument("--model", choices=["logreg", "mlp"], default="logreg")
     ap.add_argument("--synthetic", action="store_true", help="mark outputs as synthetic")
+    ap.add_argument("--include-excluded", action="store_true", help="ignore <data>/excluded.csv")
     args = ap.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
 
-    X, y, groups, meta = load_dataset(args.data)
+    excluded = {} if args.include_excluded else read_excluded(args.data / "excluded.csv")
+    X, y, groups, meta = load_dataset(args.data, set(excluded))
+    if excluded:
+        print(f"left out {len(excluded)} files listed in {args.data / 'excluded.csv'}: {' '.join(sorted(excluded))}")
     parts = sorted(set(groups))
     print(f"{len(meta)} files, {len(X)} windows, {len(parts)} participants: {' '.join(parts)}")
     for c in range(len(CLASSES)):
@@ -86,6 +93,7 @@ def main():
         "scaler_mean": sc.mean_.tolist(), "scaler_scale": sc.scale_.tolist(),
         "lopo_macro_f1": {k: float(v) for k, v in fold_f1.items()}, "pooled_macro_f1": pooled_f1,
         "confusion": cm_total.tolist(), "n_windows": int(len(X)), "participants": parts,
+        "excluded_files": sorted(excluded),
     }
     if args.model == "logreg":
         model["layers"] = [{"W": clf.coef_.T.tolist(), "b": clf.intercept_.tolist(), "act": "softmax"}]
@@ -99,7 +107,7 @@ def main():
 
     # firmware self-test: one raw window from the first file, its features and expected probabilities
     from common import load_csv, windows
-    first = sorted(args.data.glob("P*.csv"))[0]
+    first = args.data / meta[0]["file"]
     w0 = windows(load_csv(first))[0]
     probs = clf.predict_proba(sc.transform(X[:1]))[0]
     (args.out / "selftest.json").write_text(json.dumps(

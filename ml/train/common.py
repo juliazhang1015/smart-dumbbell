@@ -86,10 +86,22 @@ def features_batch(ws: np.ndarray) -> np.ndarray:
     return np.stack([features(w) for w in ws]) if len(ws) else np.empty((0, N_FEATURES), np.float32)
 
 
-def load_dataset(session_dir: Path):
-    """All sessions under session_dir -> X (n, N_FEATURES), y (n,) class idx, groups (n,) participant, meta."""
+def read_excluded(path: Path) -> dict:
+    """excluded.csv (columns file, reason) -> {file name: reason}. Missing file -> {}."""
+    if not path.exists():
+        return {}
+    df = pd.read_csv(path, dtype=str).fillna("")
+    return dict(zip(df["file"], df["reason"]))
+
+
+def load_dataset(session_dir: Path, exclude: set | None = None):
+    """All sessions under session_dir, except the file names in exclude ->
+    X (n, N_FEATURES), y (n,) class idx, groups (n,) participant, meta."""
+    exclude = exclude or set()
     X, y, g, meta = [], [], [], []
     for path in sorted(session_dir.glob("P*.csv")):
+        if path.name in exclude:
+            continue
         info = parse_name(path)
         df = load_csv(path)
         ws = windows(df)

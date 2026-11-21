@@ -22,6 +22,8 @@ python3 -m venv .venv && .venv/bin/pip install -r ml/train/requirements.txt
 
 Features per window: mean, std, min, max of each of the six channels; mean and std of acceleration and gyro magnitude; zero-crossing count of each gyro axis. Models: logistic regression (default) or a 16-unit MLP. Both export to the same header format.
 
+Files listed in `data/sessions/excluded.csv`, with the reason for each, are left out of training and evaluation; `--include-excluded` uses every file. The recordings themselves stay in `data/sessions/` and in `sessions.csv`.
+
 Evaluation rule: split by participant before windowing; fit the scaler on training folds only; report the pooled confusion matrix and macro-F1 against AT-01 (≥ 0.85). Classification and repetition counting are separate tasks; the counter lives in `firmware/counter/` (Julia Zhang).
 
 Do not commit identifiable recordings. See `../data/README.md` and `../data/sessions/README.md`.

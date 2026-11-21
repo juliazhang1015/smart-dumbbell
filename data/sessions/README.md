@@ -8,6 +8,10 @@ Rules:
 - Files are the raw CSV from `firmware/bringup/record_serial.py`: `t_ms,ax,ay,az,gx,gy,gz` at 104 Hz. Do not edit values; if a take is bad, delete the file and record again.
 - Nothing identifying: no video, no audio, no health history. Anything that cannot meet this goes in `data/raw/` or `data/private/`, which Git ignores.
 
+## Files left out of training
+
+`excluded.csv` lists recordings that stay in this folder and in `sessions.csv` but are left out of training and evaluation by `ml/train/train.py`, one line each with the reason. Add a file there instead of deleting it.
+
 ## Mount versions
 
 The `notes` column of `sessions.csv` says which mounting each file was recorded with.
