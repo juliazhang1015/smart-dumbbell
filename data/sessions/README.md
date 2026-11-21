@@ -7,3 +7,10 @@ Rules:
 - Participants appear only as codes (`P01`, `P02`, ...). The code-to-name list stays outside this repository.
 - Files are the raw CSV from `firmware/bringup/record_serial.py`: `t_ms,ax,ay,az,gx,gy,gz` at 104 Hz. Do not edit values; if a take is bad, delete the file and record again.
 - Nothing identifying: no video, no audio, no health history. Anything that cannot meet this goes in `data/raw/` or `data/private/`, which Git ignores.
+
+## Mount versions
+
+The `notes` column of `sessions.csv` says which mounting each file was recorded with.
+
+- **mount v1** (P01, P02): described in `ml/data-protocol.md` section 3. Flat reference `P01_idle_table_01.csv`, mean acceleration (0.69, 0.11, 10.04) m/s².
+- **mount v2** (P03, 2026-11-20): the sensor was taken off the bench dumbbell and re-taped. Flat reference `P03_idle_table_01.csv`, mean acceleration (-0.17, 0.70, 10.03) m/s², 6.0° from the v1 reference. A three-curl check before the session put the rotation axis 10° from sensor X, with raising still giving a negative `gx` angle. During the session the axis measured on the curl files drifted to 33-49° from sensor X, so the sensor may not have stayed fixed; no check was made afterwards. Treat mount v2 curl files with caution.
