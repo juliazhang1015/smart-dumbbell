@@ -36,6 +36,21 @@ Record a dated decision, reason, supporting evidence and affected files when any
 
 ## Decision log
 
+### 2026-11-19: Recording target reduced from six participants to the four team members
+
+- **Decision:** `ml/data-protocol.md` v0.3 sets the participant target at four, all team members (P01–P04), instead of the v0.2 target of at least six covering both hands and both strength-training groups. Data volume per class drops below the 10-minute figure in the protocol's section 10.
+- **Reason:** The deliverable is due 2026-11-21 and recruiting outside volunteers in the remaining time is not realistic; the course volunteer requirements were never confirmed. The number was the team's own planning target (`ml/workplan.md`, 2026-11-03), not a course requirement — AT-01 in `docs/specification.md` requires held-out participants but no count.
+- **Consequence:** AT-01 evidence is reported as "4 participants, all team members, leave-one-participant-out"; it is not presented as meeting the original data plan. The model card keeps the warning that posture, not motion, can be learned from so few people.
+- **Affected files:** `ml/data-protocol.md`, `ml/model-card.md`, `ml/recording-checklist.md`, `docs/decisions.md`.
+- **Superseded** on 2026-11-21 by the entry below: two outside volunteers were recorded on 2026-11-20.
+
+### 2026-11-21: Participants are the five actually recorded, two of them outside volunteers
+
+- **Decision:** `ml/data-protocol.md` v0.4 records P01-P05 as the dataset: P01, P02 and P03 team members, P04 and P05 outside volunteers. Outside volunteers are allowed when they agree to public release before their files are committed, with the agreement recorded in `data/README.md`.
+- **Reason:** The v0.3 entry assumed no volunteers could be recruited before the deadline; two were recorded on 2026-11-20 (PR #19), so the protocol and the data disagreed.
+- **Consequence:** AT-01 evidence is reported as "5 participants, leave-one-participant-out" with their composition. Course volunteer requirements remain unconfirmed and are listed as an open item.
+- **Affected files:** `ml/data-protocol.md`, `ml/recording-checklist.md`, `docs/decisions.md`.
+
 ### 2026-11-03: Motion ML work split into two owned lines
 
 - **Decision:** Movement classification (FR-03, FR-04, AT-01) and repetition counting with on-device integration (FR-02, FR-05, FR-06, AT-02, AT-03) are two separately owned lines, each with its own files, branch, issue and documentation. The only shared contract is the classifier output (`t_ms,label,conf`, one result per second over a 2 s window at 104 Hz), recorded as a draft in `ml/workplan.md` section 4 and to be confirmed in the week of 2026-11-04. Anonymised recordings are committed under `data/sessions/` (participant codes only); `data/raw/` and `data/private/` stay ignored for anything that cannot be anonymised.
