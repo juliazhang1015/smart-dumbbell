@@ -47,8 +47,12 @@ const unsigned long LIFT_TIMEOUT_MS=8000;   // slowest rehab-pace rep seen so fa
 unsigned long elapsed(){return activeMs+(state==RUNNING ? millis()-started : 0);}
 
 // IMU sampling at the classifier's rate, ring buffer and shadow inference.
-const uint32_t IMU_PERIOD_US=1000000UL/CLF_FS;
-uint32_t imuNext=0, imuLate=0;
+// The sensor produces a new sample every IMU_PERIOD_US. Read only when its gyro data-ready flag is
+// set: a fixed timer alone re-read the same sample back to back after a loop stall (Wi-Fi, BLE,
+// display), which put duplicate rows into the classifier window and integrated the same rotation
+// twice in the rep counter. imuLate counts gaps where at least one sample was lost instead.
+const uint32_t IMU_PERIOD_US=1000000UL/CLF_FS, IMU_EARLY_US=1000, IMU_POLL_US=300;
+uint32_t imuNext=0, imuLate=0, imuSamples=0, lastSampleUs=0;
 static float ring[CLF_WINDOW][6], window[CLF_WINDOW][6], feats[CLF_N_FEATURES];
 int ringHead=0, ringCount=0, sinceInfer=0;
 int lastLabel=-1; float lastConf=0; uint32_t lastInferUs=0;
@@ -171,17 +175,25 @@ void counterSample(float speed, float dt, unsigned long now){
   }
 }
 void serviceIMU(){
-  if(!hasImu || (int32_t)(micros()-imuNext)<0) return;
-  imuNext+=IMU_PERIOD_US;
-  if((int32_t)(micros()-imuNext)>0) imuLate++;
+  if(!hasImu) return;
+  uint32_t nowUs=micros();
+  if((int32_t)(nowUs-imuNext)<0) return;
+  if(!imu.gyroscopeAvailable()){ imuNext=nowUs+IMU_POLL_US; return; }   // not ready yet: look again shortly
   sensors_event_t a,g,t;
   if(!imu.getEvent(&a,&g,&t)) return;
+  // rep counter integrates over the real time since the previous sample, so a lost sample is not
+  // a lost angle; capped so that a long stall cannot add one huge step
+  float dt=lastSampleUs ? (nowUs-lastSampleUs)*1e-6f : 1.0f/CLF_FS;
+  if(dt>1.5f/CLF_FS) imuLate++;
+  if(dt>0.1f) dt=0.1f;
+  lastSampleUs=nowUs; imuSamples++;
+  imuNext=nowUs+IMU_PERIOD_US-IMU_EARLY_US;   // next sample is due one period later; start looking a little early
   unsigned long now=millis();
   float* s=ring[ringHead];
   s[0]=a.acceleration.x; s[1]=a.acceleration.y; s[2]=a.acceleration.z;
   s[3]=g.gyro.x*RAD_TO_DEG; s[4]=g.gyro.y*RAD_TO_DEG; s[5]=g.gyro.z*RAD_TO_DEG;   // classifier units: m/s^2, deg/s
   ringHead=(ringHead+1)%CLF_WINDOW; if(ringCount<CLF_WINDOW) ringCount++;
-  if(state==RUNNING) counterSample(g.gyro.x, 1.0f/CLF_FS, now);
+  if(state==RUNNING) counterSample(g.gyro.x, dt, now);
   if(ringCount==CLF_WINDOW && ++sinceInfer>=CLF_HOP){
     sinceInfer=0;
     for(int i=0;i<CLF_WINDOW;i++){ const float* src=ring[(ringHead+i)%CLF_WINDOW]; for(int c=0;c<6;c++) window[i][c]=src[c]; }
@@ -244,7 +256,8 @@ void setup(){
 }
 void loop(){
   if (Serial.available() && Serial.read() == '?') {
-    Serial.printf("IMU=%d MAX30102=%d OLED=%d imu_late=%lu\n", hasImu, hasPpg, hasOled, (unsigned long)imuLate);
+    Serial.printf("IMU=%d MAX30102=%d OLED=%d imu_late=%lu imu_samples=%lu t_ms=%lu\n", hasImu, hasPpg, hasOled,
+                  (unsigned long)imuLate, (unsigned long)imuSamples, millis());
     Serial.print("I2C addresses:");
     for (uint8_t addr = 8; addr < 120; ++addr) {
       Wire.beginTransmission(addr);

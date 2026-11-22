@@ -74,9 +74,18 @@ Above about 0.75 × the full swing, fast complete curls start to be dropped. A c
 - BPM is the mean of the last 4 valid beat intervals (shown after 2), reset on finger loss or state change, instead of a single interval.
 - BLE packet fields are copied through explicit `uint32_t` / `uint16_t` locals.
 
+## IMU sampling after a loop stall (2026-11-21)
+
+Review on PR #16: the IMU was read on a fixed 104 Hz timer. After the loop stalled (Wi-Fi, BLE, an OLED refresh), the timer was behind and `serviceIMU` read the sensor several times back to back. The sensor only updates every 9.6 ms, so those reads returned the same sample: duplicate rows in the classifier window, and the rep counter integrated the same rotation once per read at a fixed `1/104 s`.
+
+Now `serviceIMU` reads only when the gyro data-ready flag is set (`imu.gyroscopeAvailable()`), polling every 0.3 ms from 1 ms before a sample is due, and the counter integrates over the real time since the previous sample (capped at 0.1 s). A stall now loses samples instead of duplicating them; `imu_late` counts each gap longer than 1.5 sample periods. `?` prints `imu_late`, `imu_samples` and `t_ms`, so two reports give the actual read rate.
+
+**Not yet tested on the board.** It compiles (Flash 1378 kB, 43 %). The planned check: a test-only copy of the old and the new sketch, each with a 50 ms stall once per second and a counter of exactly repeated samples; expected duplicates > 0 for the old code, 0 for the new, about 99 reads/s and one `imu_late` per second for the new.
+
 ## Known limits
 
 - The classifier runs but does not gate counting, so counting while walking or shaking is only reduced by the swing gate, not prevented. Gating is a one-line change (`firmware/app` has it) once the model is validated on the assembled dumbbell.
+- Samples lost in a stall are not filled in: the classifier window then covers slightly more than 2 s. `imu_late` shows how often this happens.
 - Heart rate has no validity flag beyond "0 = none"; the earlier static test read 9–14 bpm high with this library (`docs/handoff.md`).
 - The AP password is in the source. It is a demo credential, not a secret, but change it before any public demo.
 - BLE is not in `docs/specification.md`; see the open item in `docs/decisions.md`.
