@@ -1,8 +1,11 @@
 // ECE198 bench prototype. Arduino Nano ESP32, default Arduino pin numbering.
 // One sketch, two builds: USE_BLE 0 = Wi-Fi AP + HTTP only, USE_BLE 1 = also a BLE notify characteristic.
 // The curl/idle/other classifier (firmware/classifier, trained on data/sessions) runs on the board once
-// per second in shadow mode: its label is shown, logged and sent, but does not gate the rep counter.
+// per second; its label is shown, logged and sent. With COUNT_GATE 1 it also confirms every rep: when the
+// counter finds a complete swing, the 2 s ending at that sample are classified and the rep counts only
+// if the label is curl. COUNT_GATE 0 is the previous shadow mode (label never changes the count).
 #define USE_BLE 1
+#define COUNT_GATE 1
 #include <Wire.h>
 #include <WiFi.h>
 #include <WebServer.h>
@@ -151,9 +154,26 @@ void samplePulse(){
     if(now-lastBeat>2000){bpm=0;beatN=0;}
   }
 }
+// Model confirmation of a rep (COUNT_GATE 1). Classifies the 2 s that end at the current sample, i.e.
+// the rep that just finished, not the last once-per-second label: replayed on data/sessions with each
+// participant's leave-one-out model, this cut reps counted during other movement from 26 to 1 and
+// counted 217 of 223 complete curls (swing gate alone: 218); gating on the last periodic label counted
+// 212 and let 4 through (ml/tools/replay_count_gate.py). Half curls are labelled curl in the training
+// data, so the model does not reject them: that stays the job of SWING_MIN_DEG.
+// Fewer than 2 s buffered (just after boot): the rep is accepted.
+int gateLabel=-1; float gatePcurl=-1;
+bool gateAccept(){
+  gateLabel=-1; gatePcurl=-1;
+  if(ringCount<CLF_WINDOW) return true;
+  for(int i=0;i<CLF_WINDOW;i++){ const float* src=ring[(ringHead+i)%CLF_WINDOW]; for(int c=0;c<6;c++) window[i][c]=src[c]; }
+  clf_features(window,feats);
+  ClfResult r=clf_infer(feats);
+  gateLabel=r.label; gatePcurl=r.probs[0];   // CLF_CLASSES[0] is "curl"
+  return strcmp(CLF_CLASSES[r.label],"curl")==0;
+}
 // Bench baseline: mount the gyro X axis along the elbow rotation axis.
-// A rep = one stroke, the opposite stroke, then low angular speed, with the swing gate above.
-// speed in rad/s, dt in s, now in ms. Only called while RUNNING.
+// A rep = one stroke, the opposite stroke, then low angular speed, with the swing gate above,
+// then (COUNT_GATE 1) the model confirmation. speed in rad/s, dt in s, now in ms. Only called while RUNNING.
 void counterSample(float speed, float dt, unsigned long now){
   static bool returning=false;
   static float swing=0, peak=0;          // integrated angle (rad) since the lift started, lift direction positive
@@ -170,7 +190,13 @@ void counterSample(float speed, float dt, unsigned long now){
     if(now-phaseAt>200 && speed*firstSign< -0.9) returning=true;
   }else if(fabs(speed)<0.35 && now-phaseAt>450){
     if(peak<SWING_MIN_DEG*DEG_TO_RAD){ lifting=false; Serial.printf("SWING,%lu,%.0f,small\n",now,peak*RAD_TO_DEG); }   // not a rep
-    else if(swing<=RETURN_FRAC*peak){ reps++; lifting=false; feedback(); Serial.printf("SWING,%lu,%.0f,rep=%u\n",now,peak*RAD_TO_DEG,reps); }
+    else if(swing<=RETURN_FRAC*peak){
+      lifting=false;
+#if COUNT_GATE
+      if(!gateAccept()){ Serial.printf("SWING,%lu,%.0f,rejected=%s,p_curl=%.2f\n",now,peak*RAD_TO_DEG,CLF_CLASSES[gateLabel],gatePcurl); return; }
+#endif
+      reps++; feedback(); Serial.printf("SWING,%lu,%.0f,rep=%u,p_curl=%.2f\n",now,peak*RAD_TO_DEG,reps,gatePcurl);
+    }
     // else: settled while still raised (overshoot bounce or incomplete lowering) -> wait for the real return
   }
 }
@@ -242,7 +268,7 @@ void setup(){
   Wire.beginTransmission(0x3C);
   hasOled=Wire.endTransmission()==0 && oled.begin(SSD1306_SWITCHCAPVCC,0x3C,false,false);
   Serial.printf("IMU=%d MAX30102=%d OLED=%d\n",hasImu,hasPpg,hasOled);
-  Serial.printf("classifier: %d features, %d layers, window %d, hop %d\n",CLF_N_FEATURES,CLF_N_LAYERS,CLF_WINDOW,CLF_HOP);
+  Serial.printf("classifier: %d features, %d layers, window %d, hop %d, count_gate %d, swing_min_deg %.0f\n",CLF_N_FEATURES,CLF_N_LAYERS,CLF_WINDOW,CLF_HOP,COUNT_GATE,SWING_MIN_DEG);
   selfTest();
   WiFi.softAP("SmartDumbbell","curl198demo");
   Serial.println(WiFi.softAPIP());

@@ -2,6 +2,8 @@
 
 Zoe Wang's sketch for the soldered board (PR #15, 2026-11-18), tidied on 2026-11-19 by Hanson He: the plain and BLE copies were merged into one file behind `USE_BLE`, the backup `.txt` was dropped (git history is the backup), and the fixes listed below were applied. It descends from `firmware/demo/smart_dumbbell_demo.ino` (Julia Zhang, 2026-11-08).
 
+Status 2026-11-21: with `COUNT_GATE 1` (the default) the classifier now confirms every rep before it is counted (section "Model confirmation of reps"). Compiles in all four builds (`USE_BLE` 0/1 × `COUNT_GATE` 0/1); **not run on the board**.
+
 Status 2026-11-19 (second revision): the curl/idle/other classifier now runs on the board in shadow mode and the counter prints every swing for per-user calibration. Both builds compile for `arduino:esp32:nano_nora` (`USE_BLE 0`: Flash 788 kB / 25 %, static RAM 67.7 kB / 20 %; `USE_BLE 1`: 1378 kB / 43 %, 88.6 kB / 27 %); `firmware/classifier` and `firmware/app` still compile with the new weights. The rep rule was replayed offline on the P01/P02 recordings (table below). **Not yet run on hardware since these edits** — flash, press `?` on the serial monitor, and check the three module flags before trusting anything else.
 
 ## Build
@@ -28,13 +30,30 @@ Button: short press = start / pause / resume, hold ≥ 1.2 s = end. A new sessio
 
 ## Outputs
 
-- Serial 115200: `session,state,active_ms,reps,bpm,label` every 250 ms; `C,<t_ms>,<label>,<conf>,<inference_us>` once per second (classifier, `ml/workplan.md` section 4); `SWING,<t_ms>,<deg>,rep=N | small | timeout` every time the counter settles a candidate; `SELFTEST,PASS|FAIL,...` once at boot; send `?` to print module flags, the late-sample count and an I2C scan.
+- Serial 115200: `session,state,active_ms,reps,bpm,label` every 250 ms; `C,<t_ms>,<label>,<conf>,<inference_us>` once per second (classifier, `ml/workplan.md` section 4); `SWING,<t_ms>,<deg>,rep=N,p_curl=P | rejected=<label>,p_curl=P | small | timeout` every time the counter settles a candidate (`p_curl` is the model's curl probability for the 2 s ending at that rep, −1 when not computed); `SELFTEST,PASS|FAIL,...` once at boot; send `?` to print module flags, the late-sample count and an I2C scan.
 - Wi-Fi AP `SmartDumbbell` / `curl198demo`: `http://192.168.4.1/` shows the live row and offers a CSV download (columns `session,state,active_ms,reps,bpm,label`); `/sample` returns the raw row.
 - BLE (`USE_BLE 1`): device `SmartDumbbell`, service `823ef401-…`, characteristic `823ef402-…` (read + notify), 17-byte little-endian packet: `u8 version=1, u8 state (0 Ready 1 Running 2 Paused 3 Done), u32 session, u32 active_ms, u32 reps, u16 bpm (0 = unavailable), u8 label (0 curl 1 idle 2 other, 255 none yet)`, updated every 250 ms. No receiver exists in this repo yet.
 
-## Classifier (shadow mode)
+## Classifier
 
-The IMU is now read on a 104 Hz schedule (`±4 g`, `±500 dps`, the recording settings) into a 2 s ring buffer; once per second `clf_features` + `clf_infer` from `classifier.h` produce a label and confidence. The label is shown on the OLED's last line (`ML: curl 93%`), appended to the serial / CSV row and the BLE packet, and printed as a `C,...` line. **It does not gate the counter**: a wrong label changes nothing on the Reps line. At boot the sketch runs the same self-test as `firmware/classifier` and prints `SELFTEST,PASS,...,features+inference_us=N`; a build with these weights printed PASS and about 2.2 ms on 2026-11-21 (`ml/model-card.md`). The model, its data (5 participants, mount v1 and v2) and its known failures are described in `ml/model-card.md` — read the Limits section before claiming anything about it.
+The IMU is now read on a 104 Hz schedule (`±4 g`, `±500 dps`, the recording settings) into a 2 s ring buffer; once per second `clf_features` + `clf_infer` from `classifier.h` produce a label and confidence. The label is shown on the OLED's last line (`ML: curl 93%`), appended to the serial / CSV row and the BLE packet, and printed as a `C,...` line. This periodic label does not change the count; with `COUNT_GATE 1` a separate inference at each rep does (next section). At boot the sketch runs the same self-test as `firmware/classifier` and prints `SELFTEST,PASS,...,features+inference_us=N`; a build with these weights printed PASS and about 2.2 ms on 2026-11-21 (`ml/model-card.md`). The model, its data (5 participants, mount v1 and v2) and its known failures are described in `ml/model-card.md` — read the Limits section before claiming anything about it.
+
+## Model confirmation of reps (`COUNT_GATE`, 2026-11-21)
+
+With `COUNT_GATE 1`, when the counter finds a complete swing (swing ≥ `SWING_MIN_DEG`, back within `RETURN_FRAC`), `gateAccept()` classifies the 2 s ending at that sample and the rep counts only if the label is `curl`; otherwise the sketch prints `SWING,...,rejected=other|idle,...` and the count stays. If fewer than 2 s have been buffered since boot, the rep is accepted. The extra inference takes about the same 2.2 ms as the periodic one. `COUNT_GATE 0` restores the previous behaviour exactly (label shown, never changes the count).
+
+Why at the rep and not the last once-per-second label: that label is up to 1 s old, so its window can end before the rep does. Replay with `ml/tools/replay_count_gate.py` (Python port of this counter at 104 Hz, `SWING_MIN_DEG` 60°, each file classified by the leave-one-participant-out model that has not seen its participant):
+
+| Files (reference reps) | Swing gate only | + last periodic label | + model at the rep (`COUNT_GATE 1`) |
+|---|---|---|---|
+| 12 curl files with a reference (223) | 218 | 212 | **217** |
+| 5 other_mixed (0) | 26 | 4 | **1** |
+| 3 partial_mixed with a reference (27 complete) | 53 | 50 | 52 |
+
+- Reps counted during other movement (lifting, carrying, lateral and front raises, shaking) drop from 26 to 1 (the 1 is in `P05_other_mixed_01`); one complete curl is lost (`P02_curl_fast_01`, p_curl 0.06).
+- **Half curls are not rejected by the model**: `partial` recordings are labelled `curl` for training (`ml/data-protocol.md` section 3). They are still the job of `SWING_MIN_DEG`, calibrated per user (next section).
+- The P03 curl files (listed in `data/sessions/excluded.csv`) are hardly counted in any mode; their swings of about 45° are below the 60° gate before the model is asked.
+- Limits: offline replay of recordings on two mount versions, not the enclosure; reference counts are partly observer-adjusted or IMU-inferred (`sessions.csv`); the exclusion list was chosen after a first evaluation on the same participants. On the board, the 2 s before the first rep of a session include whatever happened before the button press.
 
 ## Calibrating the swing threshold for a user
 
@@ -84,7 +103,7 @@ Now `serviceIMU` reads only when the gyro data-ready flag is set (`imu.gyroscope
 
 ## Known limits
 
-- The classifier runs but does not gate counting, so counting while walking or shaking is only reduced by the swing gate, not prevented. Gating is a one-line change (`firmware/app` has it) once the model is validated on the assembled dumbbell.
+- The model confirmation is validated offline only. A rep the model wrongly calls `other` or `idle` is lost; watch the `rejected=` lines when testing on the assembled dumbbell, and set `COUNT_GATE 0` if they reject real curls.
 - Samples lost in a stall are not filled in: the classifier window then covers slightly more than 2 s. `imu_late` shows how often this happens.
 - Heart rate has no validity flag beyond "0 = none"; the earlier static test read 9–14 bpm high with this library (`docs/handoff.md`).
 - The AP password is in the source. It is a demo credential, not a secret, but change it before any public demo.
