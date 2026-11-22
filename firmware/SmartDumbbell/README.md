@@ -34,7 +34,7 @@ Button: short press = start / pause / resume, hold ≥ 1.2 s = end. A new sessio
 
 ## Classifier (shadow mode)
 
-The IMU is now read on a 104 Hz schedule (`±4 g`, `±500 dps`, the recording settings) into a 2 s ring buffer; once per second `clf_features` + `clf_infer` from `classifier.h` produce a label and confidence. The label is shown on the OLED's last line (`ML: curl 93%`), appended to the serial / CSV row and the BLE packet, and printed as a `C,...` line. **It does not gate the counter**: a wrong label changes nothing on the Reps line. At boot the sketch runs the same self-test as `firmware/classifier` and prints `SELFTEST,PASS,...,features+inference_us=N`; record that number in `ml/model-card.md` after the first board run. The model, its data (2 participants, mount v1) and its known failure are described in `ml/model-card.md` — read the Limits section before claiming anything about it.
+The IMU is now read on a 104 Hz schedule (`±4 g`, `±500 dps`, the recording settings) into a 2 s ring buffer; once per second `clf_features` + `clf_infer` from `classifier.h` produce a label and confidence. The label is shown on the OLED's last line (`ML: curl 93%`), appended to the serial / CSV row and the BLE packet, and printed as a `C,...` line. **It does not gate the counter**: a wrong label changes nothing on the Reps line. At boot the sketch runs the same self-test as `firmware/classifier` and prints `SELFTEST,PASS,...,features+inference_us=N`; a build with these weights printed PASS and about 2.2 ms on 2026-11-21 (`ml/model-card.md`). The model, its data (5 participants, mount v1 and v2) and its known failures are described in `ml/model-card.md` — read the Limits section before claiming anything about it.
 
 ## Calibrating the swing threshold for a user
 

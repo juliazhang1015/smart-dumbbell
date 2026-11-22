@@ -220,6 +220,6 @@ static const float SELFTEST_FEATURES[31] = {
 };
 
 static const float SELFTEST_PROBS[3] = {
-  0.998827f, 0.000000f, 0.001173f
+  0.998619f, 0.000000f, 0.001381f
 };
 
