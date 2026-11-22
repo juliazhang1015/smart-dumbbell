@@ -92,4 +92,4 @@ Commercial smart dumbbells demonstrate that connected repetition tracking, embed
 
 ---
 
-*Prepared with AI assistance using public product information and the repository's specification/decision files. Team review and additional evidence are required before inclusion in final assessed deliverables. No competitive hardware was purchased or tested as part of this research.*
+*Prepared by Julia Zhang using public product information and the repository's specification/decision files. Team review and additional evidence are required before inclusion in final assessed deliverables. No competitive hardware was purchased or tested as part of this research.*

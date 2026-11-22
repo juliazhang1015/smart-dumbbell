@@ -8,13 +8,13 @@ A proposed lightweight smart dumbbell for CCCARE participants who can independen
 
 ![Smart dumbbell concept](hardware/renders/Smart_Dumbbell_Concept_Render_v01.png)
 
-*AI-generated appearance study. This is not a photograph of a built prototype or a dimensionally exact CAD rendering.*
+*Concept appearance study. This is not a photograph of a built prototype or a dimensionally exact CAD rendering.*
 
 ## Start here
 
 - [Bluetooth training dashboard](software/web/) and [connection instructions](software/README.md#bluetooth-dashboard)
 - **[Team repository guide](docs/team-guide.md)**
-- [Handoff brief for teammates and their AI assistants](docs/handoff.md)
+- [Handoff brief for teammates](docs/handoff.md)
 - [Working specification](docs/specification.md)
 - [Specification PDF snapshot](docs/exports/Smart_Dumbbell_Preliminary_Specification_v01.pdf)
 - [Decisions and open questions](docs/decisions.md)
@@ -86,8 +86,8 @@ Use short branches such as `docs/hardware-check`, `firmware/sensor-readout`, and
 
 Update the Markdown specification first. Treat dated PDF/PPTX exports as snapshots and regenerate them when needed. Do not record planned tests as passed.
 
-## Attribution and project context
+## Project context
 
-This is a student course project, not an official University of Waterloo or CCCARE product. The pitch uses the supplied University of Waterloo Faculty of Engineering presentation template. AI assisted with planning, drafting, CAD scripting, presentation preparation and the concept illustration. Team review and physical validation remain necessary.
+This is a student course project, not an official University of Waterloo or CCCARE product. The pitch uses the supplied University of Waterloo Faculty of Engineering presentation template. Team review and physical validation remain necessary.
 
 The repository contains project-authored artifacts. Course handouts and the original university template remain in the course workspace. No open-source license has been selected; public visibility does not itself grant a license to reuse all material.

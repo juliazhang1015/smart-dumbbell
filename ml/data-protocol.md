@@ -1,6 +1,6 @@
 # Motion classification recording protocol
 
-Version v0.2, 2026-11-16 (v0.1: 2026-11-03; v0.2 records the mounting used from P01 onward). Owner: Hanson He. Resolve **TBD** items before recording the first participant. **Proposed** items require team agreement.
+Version v0.4, 2026-11-21 (v0.1: 2026-11-03; v0.2, 2026-11-16, records the mounting used from P01 onward; v0.3, 2026-11-19, set the target at the four team members; v0.4 records the five participants actually recorded, two of them outside volunteers, see `docs/decisions.md`). Owner: Hanson He. Resolve **TBD** items before recording the first participant. **Proposed** items require team agreement.
 
 ## 1. Purpose
 
@@ -28,11 +28,13 @@ Do not move the 4517. Before and after each participant, lay the dumbbell flat w
 
 An earlier attempt on 2026-11-16 had the sensor about 40° off the handle axis; those takes were discarded and are not in the repository.
 
+**Mount v2 (from P03, 2026-11-20).** The sensor was re-taped before P03. Orientation reference: `data/sessions/P03_idle_table_01.csv`, mean acceleration (-0.17, 0.70, 10.03) m/s². P03, P04 and P05 are recorded with mount v2; the details are in the "Mount versions" section of `data/sessions/README.md` (added with the P03-P05 data, PR #19).
+
 Route USB behind the hand with at least 1 m of slack.
 
 ## 4. Participants
 
-Use `P01`, `P02`, etc. Hanson keeps any identity mapping outside the repository. Record only hand (L/R) and regular strength-training experience (Y/N), not age, height or medical history. Explain what is recorded, storage and the option to stop; confirm course volunteer requirements before collection (pending). Target at least six participants, including both hands and training-experience groups; teammates may participate.
+Use `P01`, `P02`, etc. Hanson keeps any identity mapping outside the repository. Record only hand (L/R) and regular strength-training experience (Y/N), not age, height or medical history. Explain what is recorded, storage and the option to stop; confirm course volunteer requirements before collection (pending). Recorded (v0.4, 2026-11-21): **five participants, P01-P05**, 2026-11-16 to 2026-11-20. P01, P02 and P03 are team members, P04 and P05 are outside volunteers; all five agreed to public release (`data/README.md`). Outside volunteers may be recorded when they agree to the public release of their recordings before the files are committed; write the agreement and its date into `data/README.md`. Whether the course sets further requirements for volunteers is still unconfirmed. The v0.2 target of six with both hands and both training-experience groups is not reached (all five are right-handed; one does strength training); every report of the model states the actual count and composition.
 
 ## 5. Labels
 
@@ -102,15 +104,20 @@ Do not commit video, audio, names, identity mappings or non-anonymous notes. Do 
 
 ## 10. Volume and progress
 
-| Category | Per participant | Six participants | Target |
+| Category | Per participant | Five participants (recorded) | v0.2 target (six) |
 |---|---|---|---|
-| curl | 2 min | 12 min | >=10 min |
-| idle | 1.5 min | 9 min | >=10 min; add a seventh participant's idle data |
-| other | 2 min | 12 min | >=10 min |
-| partial | 1 min | 6 min | Counter checks; no minimum |
+| curl | 2 min | 10 min nominal | >=10 min |
+| idle | 1.5 min | 7.5 min | >=10 min, not reached |
+| other | 2 min | 10 min | >=10 min |
+| partial | 1 min | 5 min | Counter checks; no minimum |
+
+Nominal figures; five files are not used for training (`data/sessions/excluded.csv`), four of them P03 curl and partial files, so the curl volume actually trained on is lower.
 
 Track progress in `sessions.csv`.
 
 ## 11. Protocol changes
 
 Changes to equipment/settings, mounting, labels or naming may make earlier data incompatible. Update the version/date here and record each dataset's protocol version in metadata notes.
+
+- v0.4 (2026-11-21): section 4 records the five participants actually recorded, including two outside volunteers, and how volunteers are handled; section 3 points to mount v2; section 10 recomputed for five. Procedure, labels and naming unchanged.
+- v0.3 (2026-11-19): participant target four team members instead of six; section 10 volumes recomputed. Recording procedure, mounting, labels and naming unchanged, so v0.2 recordings stay compatible. A step-by-step checklist for one participant is in `recording-checklist.md`.

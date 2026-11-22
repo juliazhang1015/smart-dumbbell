@@ -1,6 +1,16 @@
 # Data handling
 
-`data/sessions/` holds anonymised IMU recordings for the motion classifier, listed in `data/sessions/sessions.csv`; the first set (P01, a team member) was added on 2026-11-16. No outside volunteer has been recorded. The P01 participant agreed to the public release of these recordings on 2026-11-17. A second set (P02) was added on 2026-11-18; whether P02 is a teammate or a volunteer, and P02's agreement to public release, are not recorded yet. Whether the course sets requirements for recording teammates or volunteers has not been confirmed.
+`data/sessions/` holds anonymised IMU recordings for the motion classifier, listed in `data/sessions/sessions.csv`.
+
+| Participant | Recorded | Team member | Agreed to public release |
+|---|---|---|---|
+| P01 | 2026-11-16 | yes | yes, 2026-11-17 |
+| P02 | 2026-11-18 | yes | yes, confirmed to Hanson He on 2026-11-21 (date of agreement not recorded) |
+| P03 | 2026-11-20 | yes | yes, 2026-11-20 |
+| P04 | 2026-11-20 | no, an outside volunteer | yes, 2026-11-20 |
+| P05 | 2026-11-20 | no, an outside volunteer | yes, 2026-11-20 |
+
+P04 and P05 are the first outside volunteers. Both agreed to the public release of their recordings. Whether the course sets requirements for recording volunteers has not been confirmed.
 
 Raw recordings and session logs are ignored by Git by default. Use anonymous test identifiers, avoid medical histories and identifying video, and keep any participant-to-ID mapping outside this repository. Confirm permission and course requirements before recording volunteers.
 

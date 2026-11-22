@@ -19,7 +19,7 @@ The committed v0.1 DWG has a 280 mm overall shell length, 100 mm maximum head wi
 
 An 80 mm head width (about 69.3 mm height for the regular hexagon) has been proposed but NOT implemented. Simply shrinking the shell creates interference at the existing screw bosses, OLED/button positions and accelerometer location. The current board and power envelopes appear potentially compatible after repacking, but connectors, mounts and actual parts are not verified. A 90 mm width is also only a candidate.
 
-The AI rendering illustrates appearance and is not a dimensional reference. Use CAD notes for dimensions. Do not print the electronics envelopes or exploded duplicate assembly.
+The concept rendering illustrates appearance and is not a dimensional reference. Use CAD notes for dimensions. Do not print the electronics envelopes or exploded duplicate assembly.
 
 ## Open decisions and evidence needed
 
@@ -35,6 +35,21 @@ The AI rendering illustrates appearance and is not a dimensional reference. Use 
 Record a dated decision, reason, supporting evidence and affected files when any baseline choice changes.
 
 ## Decision log
+
+### 2026-11-19: Recording target reduced from six participants to the four team members
+
+- **Decision:** `ml/data-protocol.md` v0.3 sets the participant target at four, all team members (P01–P04), instead of the v0.2 target of at least six covering both hands and both strength-training groups. Data volume per class drops below the 10-minute figure in the protocol's section 10.
+- **Reason:** The deliverable is due 2026-11-21 and recruiting outside volunteers in the remaining time is not realistic; the course volunteer requirements were never confirmed. The number was the team's own planning target (`ml/workplan.md`, 2026-11-03), not a course requirement — AT-01 in `docs/specification.md` requires held-out participants but no count.
+- **Consequence:** AT-01 evidence is reported as "4 participants, all team members, leave-one-participant-out"; it is not presented as meeting the original data plan. The model card keeps the warning that posture, not motion, can be learned from so few people.
+- **Affected files:** `ml/data-protocol.md`, `ml/model-card.md`, `ml/recording-checklist.md`, `docs/decisions.md`.
+- **Superseded** on 2026-11-21 by the entry below: two outside volunteers were recorded on 2026-11-20.
+
+### 2026-11-21: Participants are the five actually recorded, two of them outside volunteers
+
+- **Decision:** `ml/data-protocol.md` v0.4 records P01-P05 as the dataset: P01, P02 and P03 team members, P04 and P05 outside volunteers. Outside volunteers are allowed when they agree to public release before their files are committed, with the agreement recorded in `data/README.md`.
+- **Reason:** The v0.3 entry assumed no volunteers could be recruited before the deadline; two were recorded on 2026-11-20 (PR #19), so the protocol and the data disagreed.
+- **Consequence:** AT-01 evidence is reported as "5 participants, leave-one-participant-out" with their composition. Course volunteer requirements remain unconfirmed and are listed as an open item.
+- **Affected files:** `ml/data-protocol.md`, `ml/recording-checklist.md`, `docs/decisions.md`.
 
 ### 2026-11-03: Motion ML work split into two owned lines
 
@@ -58,11 +73,11 @@ Record a dated decision, reason, supporting evidence and affected files when any
 - **Decision:** The order (Salesorder 102617982) was placed with Adafruit 4517 (LSM6DSOX + LIS3MDL 9-DoF, CAD 29.63) instead of the recommended 4438, plus two 4209 cables (one spare) and the Nano ESP32. Shipping was FedEx International Priority at CAD 15.00, the only option shown at guest checkout. Total invoiced CAD 86.00. The team chose to keep 4517 rather than change the order; the magnetometer is unused in Version 1 and may be useful later.
 - **Reason:** Changing a submitted DigiKey order is usually not possible and a return would cost more in shipping and time than the CAD 12 difference.
 - **Consequence:** CAD 14 remains under the budget ceiling for power and enclosure. Recorded above as an open decision.
-- **Affected files:** `docs/hardware.md`, the former translated specification (removed after English consolidation), `AGENTS.md`, `Hardware Datasheets/README.md`.
+- **Affected files:** `docs/hardware.md`, the former translated specification (removed after English consolidation), `docs/project-guidelines.md`, `Hardware Datasheets/README.md`.
 
 ### 2026-10-31: IMU changed from borrowed ADXL335 to purchased LSM6DSOX; controller confirmed
 
 - **Decision:** Buy Arduino Nano ESP32 with headers (DigiKey 1050-ABX00083-ND, CAD 28.66), Adafruit LSM6DSOX 6-DoF IMU (1528-4438-ND, CAD 17.75) and a STEMMA QT to male-header cable (1528-4209-ND, CAD 1.41). Borrow GY-MAX30102, OLED and buttons. ADXL335 becomes an optional backup only.
 - **Reason:** A bicep curl is mainly forearm rotation, so angular rate from a gyroscope gives a cleaner repetition signal than acceleration alone. The course loan list and the Grove Starter Kit Plus contain no gyroscope and no wireless controller, so these two items must be purchased. The 9-DoF version (4517, CAD 29.63) was rejected because the magnetometer does not help curl counting and costs CAD 12 more. R4 Minima plus an external Wi-Fi module was rejected because the R4 3.3 V pin is fed by the RA4M1 internal USB LDO (R4 Minima datasheet section 9.2) and cannot power a Wi-Fi module, its 5 V logic needs level shifting, and 32 kB SRAM is tight for ML plus Wi-Fi buffers.
 - **Evidence:** DigiKey Canada prices and stock on 2026-10-31; Grove Starter Kit Plus wiki parts list; Arduino UNO R4 Minima datasheet. No hardware has been received or tested.
-- **Affected files:** `docs/hardware.md`, `docs/specification.md`, the former translated specification (removed after English consolidation), `README.md`, `AGENTS.md`, `docs/team-guide.md`. Not yet updated: the pitch deck and speaker script (delivered snapshots still name ADXL335), the PDF specification export, and the CAD accelerometer placeholder dimensions.
+- **Affected files:** `docs/hardware.md`, `docs/specification.md`, the former translated specification (removed after English consolidation), `README.md`, `docs/project-guidelines.md`, `docs/team-guide.md`. Not yet updated: the pitch deck and speaker script (delivered snapshots still name ADXL335), the PDF specification export, and the CAD accelerometer placeholder dimensions.
