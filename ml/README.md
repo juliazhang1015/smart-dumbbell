@@ -2,7 +2,7 @@
 
 Work split, interface contract, recording plan and timeline: `workplan.md` (agreed 2026-11-03). Recording protocol: `data-protocol.md`. Owner of this folder: Hanson He (classification line).
 
-Status 2026-11-03: no real recordings yet. The training pipeline below runs end to end on synthetic data and its C++ port compiles for the Nano ESP32; every performance number so far is from synthetic data and means nothing about real motion.
+Status 2026-11-21: model trained on five participants (P01–P05, 40 files, 1892 windows), leave-one-participant-out macro-F1 0.872 tested on every file, deployed to the firmware; see `model-card.md`, including why five participants, two mount versions and an exclusion list chosen after a first evaluation make that number provisional. Recording on the assembled dumbbell is the open work.
 
 ## Pipeline (`train/`)
 
