@@ -68,4 +68,4 @@ python3 ml/train/check_recording.py data/sessions/P0x_curl_slow_01.csv
 
 ## E. Participants
 
-P01-P05 are recorded (2026-11-16 to 2026-11-20): P01 and P03 are team members, P04 and P05 outside volunteers, P02's team membership is not recorded. The next participant is P06. An outside volunteer is fine when they agree to public release before the files are committed (section B, and the table in `data/README.md`). All five so far are right-handed and only P04 does regular strength training, so a left-handed or strength-training participant adds the most. Any AT-01 statement gives the actual count and composition, not "all team members".
+P01-P05 are recorded (2026-11-16 to 2026-11-20): P01, P02 and P03 are team members, P04 and P05 outside volunteers. The next participant is P06. An outside volunteer is fine when they agree to public release before the files are committed (section B, and the table in `data/README.md`). All five so far are right-handed and only P04 does regular strength training, so a left-handed or strength-training participant adds the most. Any AT-01 statement gives the actual count and composition, not "all team members".

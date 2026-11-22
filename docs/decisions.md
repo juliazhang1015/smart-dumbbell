@@ -46,7 +46,7 @@ Record a dated decision, reason, supporting evidence and affected files when any
 
 ### 2026-11-21: Participants are the five actually recorded, two of them outside volunteers
 
-- **Decision:** `ml/data-protocol.md` v0.4 records P01-P05 as the dataset: P01 and P03 team members, P04 and P05 outside volunteers, P02's team membership not recorded. Outside volunteers are allowed when they agree to public release before their files are committed, with the agreement recorded in `data/README.md`.
+- **Decision:** `ml/data-protocol.md` v0.4 records P01-P05 as the dataset: P01, P02 and P03 team members, P04 and P05 outside volunteers. Outside volunteers are allowed when they agree to public release before their files are committed, with the agreement recorded in `data/README.md`.
 - **Reason:** The v0.3 entry assumed no volunteers could be recruited before the deadline; two were recorded on 2026-11-20 (PR #19), so the protocol and the data disagreed.
 - **Consequence:** AT-01 evidence is reported as "5 participants, leave-one-participant-out" with their composition. Course volunteer requirements remain unconfirmed and are listed as an open item.
 - **Affected files:** `ml/data-protocol.md`, `ml/recording-checklist.md`, `docs/decisions.md`.
