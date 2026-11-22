@@ -2,7 +2,7 @@
 
 Zoe Wang's sketch for the soldered board (PR #15, 2026-11-18), tidied on 2026-11-19 by Hanson He: the plain and BLE copies were merged into one file behind `USE_BLE`, the backup `.txt` was dropped (git history is the backup), and the fixes listed below were applied. It descends from `firmware/demo/smart_dumbbell_demo.ino` (Julia Zhang, 2026-11-08).
 
-Status 2026-11-21: with `COUNT_GATE 1` (the default) the classifier now confirms every rep before it is counted (section "Model confirmation of reps"). Compiles in all four builds (`USE_BLE` 0/1 × `COUNT_GATE` 0/1); **not run on the board**.
+Status 2026-11-21: with `COUNT_GATE 1` (the default) the classifier now confirms every rep before it is counted (section "Model confirmation of reps"). Compiles in all four builds (`USE_BLE` 0/1 × `COUNT_GATE` 0/1). First board check the same day, board held in the hand, not on a dumbbell (`tests/results/2026-11-21_count-gate-handheld.md`): 23 of 23 complete curls counted, 2 curls during which the hand hit a laptop rejected, 0 reps during shaking, lateral and front raises. Not yet tested on the assembled dumbbell.
 
 Status 2026-11-19 (second revision): the curl/idle/other classifier now runs on the board in shadow mode and the counter prints every swing for per-user calibration. Both builds compile for `arduino:esp32:nano_nora` (`USE_BLE 0`: Flash 788 kB / 25 %, static RAM 67.7 kB / 20 %; `USE_BLE 1`: 1378 kB / 43 %, 88.6 kB / 27 %); `firmware/classifier` and `firmware/app` still compile with the new weights. The rep rule was replayed offline on the P01/P02 recordings (table below). **Not yet run on hardware since these edits** — flash, press `?` on the serial monitor, and check the three module flags before trusting anything else.
 
@@ -99,11 +99,11 @@ Review on PR #16: the IMU was read on a fixed 104 Hz timer. After the loop stall
 
 Now `serviceIMU` reads only when the gyro data-ready flag is set (`imu.gyroscopeAvailable()`), polling every 0.3 ms from 1 ms before a sample is due, and the counter integrates over the real time since the previous sample (capped at 0.1 s). A stall now loses samples instead of duplicating them; `imu_late` counts each gap longer than 1.5 sample periods. `?` prints `imu_late`, `imu_samples` and `t_ms`, so two reports give the actual read rate.
 
-**Not yet tested on the board.** It compiles (Flash 1378 kB, 43 %). The planned check: a test-only copy of the old and the new sketch, each with a 50 ms stall once per second and a counter of exactly repeated samples; expected duplicates > 0 for the old code, 0 for the new, about 99 reads/s and one `imu_late` per second for the new.
+Measured on the board on 2026-11-21 (`tests/results/2026-11-21_count-gate-handheld.md`): 96.3 reads per second and about 3 `imu_late` gaps per second, so about 7 % of samples are still lost to loop stalls (source not identified). The stall comparison below has not been run. The planned check: a test-only copy of the old and the new sketch, each with a 50 ms stall once per second and a counter of exactly repeated samples; expected duplicates > 0 for the old code, 0 for the new, about 99 reads/s and one `imu_late` per second for the new.
 
 ## Known limits
 
-- The model confirmation is validated offline only. A rep the model wrongly calls `other` or `idle` is lost; watch the `rejected=` lines when testing on the assembled dumbbell, and set `COUNT_GATE 0` if they reject real curls.
+- The model confirmation is validated offline and in one hand-held check (`tests/results/2026-11-21_count-gate-handheld.md`), not on the assembled dumbbell. A rep the model wrongly calls `other` or `idle` is lost; watch the `rejected=` lines when testing on the assembled dumbbell, and set `COUNT_GATE 0` if they reject real curls.
 - Samples lost in a stall are not filled in: the classifier window then covers slightly more than 2 s. `imu_late` shows how often this happens.
 - Heart rate has no validity flag beyond "0 = none"; the earlier static test read 9–14 bpm high with this library (`docs/handoff.md`).
 - The AP password is in the source. It is a demo credential, not a secret, but change it before any public demo.
