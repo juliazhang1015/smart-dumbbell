@@ -106,14 +106,10 @@ def read_excluded(path: Path) -> dict:
     return dict(zip(df["file"], df["reason"]))
 
 
-def load_dataset(session_dir: Path, exclude: set | None = None):
-    """All sessions under session_dir, except the file names in exclude ->
-    X (n, N_FEATURES), y (n,) class idx, groups (n,) participant, meta."""
-    exclude = exclude or set()
+def load_dataset(session_dir: Path):
+    """All sessions under session_dir -> X (n, N_FEATURES), y (n,) class idx, groups (n,) participant, meta."""
     X, y, g, meta = [], [], [], []
     for path in sorted(session_dir.glob("P*.csv")):
-        if path.name in exclude:
-            continue
         info = parse_name(path)
         df = load_csv(path)
         ws = windows(df)

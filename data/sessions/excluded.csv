@@ -1,6 +1,6 @@
 file,reason
-P03_curl_slow_02.csv,"curl cycles of about 45 deg (P01: 115-133), rotation axis 48 deg from sensor X; 39 of 39 windows misclassified in leave-one-participant-out evaluation (2026-11-20)"
-P03_curl_normal_02.csv,"curl cycles of about 45 deg, rotation axis 33 deg from sensor X; 30 of 39 windows misclassified"
-P03_curl_fast_02.csv,"curl cycles of about 51 deg, rotation axis 49 deg from sensor X; 39 of 39 windows misclassified"
-P03_partial_mixed_02.csv,"continuous small oscillation, not the protocol's three segments; 50 of 59 windows misclassified"
-P04_partial_mixed_01.csv,"dumbbell held the other way round (raising gives a positive gx angle) and no real half raises"
+P03_curl_slow_02.csv,"recording quality, noted in sessions.csv when recorded: curl cycles of about 45 deg (P01: 115-133), rotation axis 48 deg from sensor X, no observer count"
+P03_curl_normal_02.csv,"recording quality, noted in sessions.csv when recorded: curl cycles of about 45 deg, rotation axis 33 deg from sensor X, no observer count"
+P03_curl_fast_02.csv,"recording quality, noted in sessions.csv when recorded: curl cycles of about 51 deg, rotation axis 49 deg from sensor X, no observer count"
+P03_partial_mixed_02.csv,"recording quality, noted in sessions.csv when recorded: continuous small oscillation instead of the protocol's three segments, no observer count"
+P04_partial_mixed_01.csv,"recording quality, noted in sessions.csv when recorded: dumbbell held the other way round (raising gives a positive gx angle) and no real half raises"

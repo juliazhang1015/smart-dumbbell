@@ -10,7 +10,7 @@ Rules:
 
 ## Files left out of training
 
-`excluded.csv` lists recordings that stay in this folder and in `sessions.csv` but are left out of training and evaluation by `ml/train/train.py`, one line each with the reason. Add a file there instead of deleting it.
+`excluded.csv` lists recordings that stay in this folder and in `sessions.csv` but are not used for training by `ml/train/train.py`, one line each with the reason. They are still part of the evaluation. Add a file there instead of deleting it, and give a recording-quality reason, not a classifier result.
 
 ## Mount versions
 
