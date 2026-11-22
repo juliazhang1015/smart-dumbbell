@@ -5,7 +5,7 @@
 | Participant | Recorded | Team member | Agreed to public release |
 |---|---|---|---|
 | P01 | 2026-11-16 | yes | yes, 2026-11-17 |
-| P02 | 2026-11-18 | not recorded | yes, confirmed to Hanson He on 2026-11-21 (date of agreement not recorded) |
+| P02 | 2026-11-18 | yes | yes, confirmed to Hanson He on 2026-11-21 (date of agreement not recorded) |
 | P03 | 2026-11-20 | yes | yes, 2026-11-20 |
 | P04 | 2026-11-20 | no, an outside volunteer | yes, 2026-11-20 |
 | P05 | 2026-11-20 | no, an outside volunteer | yes, 2026-11-20 |
