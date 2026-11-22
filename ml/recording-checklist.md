@@ -1,16 +1,16 @@
 # Recording checklist — one participant, 8 files
 
-Companion to [data-protocol.md](data-protocol.md) (v0.2). Print or keep open while recording. Written 2026-11-19 after P01 and P02; the notes in *italics* are the mistakes those two sessions made.
+Companion to [data-protocol.md](data-protocol.md) (v0.4). Print or keep open while recording. Written 2026-11-19 after P01 and P02; the notes in *italics* are the mistakes those two sessions made.
 
 Budget: about 7 min of data, 30 min including setup. Two people: participant and recorder. The recorder counts and types.
 
 ## A. Before the participant arrives
 
-- [ ] Decide which dumbbell: the assembled one (preferred, it is what we deploy) or the bench dumbbell with the taped sensor (mount v1).
+- [ ] Decide which dumbbell: the assembled one (preferred, it is what we deploy) or the bench dumbbell with the taped sensor (mount v2 since 2026-11-20).
 - [ ] Sensor not moved since the last participant. If it was re-taped or the enclosure was opened, that is a new mount version — note it in `data-protocol.md` section 3 and in every `sessions.csv` row.
 - [ ] Flash `firmware/bringup/04_imu_stream` (SmartDumbbell does not output raw samples). Re-flash SmartDumbbell when done.
 - [ ] Terminal shows seven columns `t_ms,ax,ay,az,gx,gy,gz` at about 104 rows/s. Do not toggle DTR/RTS (drops the board into bootloader mode).
-- [ ] Orientation check: dumbbell flat on the table, sensor on top, record 5 s, compare the mean acceleration with the reference (0.69, 0.11, 10.04) m/s². Within 5°: same mount. Larger: new mount version — send the file to Hanson before recording anyone.
+- [ ] Orientation check: dumbbell flat on the table, sensor on top, record 5 s, compare the mean acceleration with the mount v2 reference (-0.17, 0.70, 10.03) m/s² (mount v1, P01-P02: 0.69, 0.11, 10.04). Within 5°: same mount. Larger: new mount version — send the file to Hanson before recording anyone.
 
   ```bash
   python3 firmware/bringup/record_serial.py /dev/cu.usbmodemXXXX /tmp/flat_check.csv 5
@@ -61,11 +61,11 @@ python3 ml/train/check_recording.py data/sessions/P0x_curl_slow_01.csv
 - [ ] One row per file in `data/sessions/sessions.csv`, columns `file,participant,record_label,variant,true_reps,observer_reps,reps_source,date,recorder,notes`.
   - `true_reps`: complete reps inside the file. `observer_reps`: the live count. `reps_source`: `observer` when they are equal and nothing was cut off; `observer_adjusted` when a cut-off rep was removed (say which in the notes); `imu_inferred` only if no live count exists.
   - `recorder`: a name, not "team".
-  - `notes` start with `protocol v0.2; mount v1` (or the new version), then `hand R/L; strength training Y/N`, then anything unusual (discarded takes, pace actually achieved, wire issues).
+  - `notes` start with `protocol v0.2; mount v2` (or the new version), then `hand R/L; strength training Y/N`, then anything unusual (discarded takes, pace actually achieved, wire issues).
 - [ ] `data/README.md`: add the participant code and the date of their agreement to public release.
 - [ ] Commit the CSVs and `sessions.csv` together the same day, e.g. `data: add P03 session (8 files)`, open a PR, ask for review. Never `git add -f` anything that `.gitignore` excludes.
 - [ ] Tell Hanson: he re-runs `train.py` (leave-one-participant-out), the feature ablation and the counter replay, and regenerates `model_weights.h` if the result holds.
 
 ## E. Participants
 
-The team is four people; P01 and P02 are recorded, the remaining two teammates become P03 and P04. Note their hand and training experience as they are — P01 and P02 are both right-handed with no regular strength training, so any difference is useful. Four team members is the protocol's revised target (v0.3, decision of 2026-11-19); the model card and any AT-01 statement say "4 participants, all team members".
+P01-P05 are recorded (2026-11-16 to 2026-11-20): P01 and P03 are team members, P04 and P05 outside volunteers, P02's team membership is not recorded. The next participant is P06. An outside volunteer is fine when they agree to public release before the files are committed (section B, and the table in `data/README.md`). All five so far are right-handed and only P04 does regular strength training, so a left-handed or strength-training participant adds the most. Any AT-01 statement gives the actual count and composition, not "all team members".
