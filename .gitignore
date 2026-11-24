@@ -48,6 +48,9 @@ ml/checkpoints/
 # Computer logger output (software/data_logger.py)
 software/*.csv
 
+# Live dashboard bridge log (software/live-dashboard/server.py)
+software/live-dashboard/bridge.log
+
 # Local experimental ML artifacts
 ml/train/*.joblib
 ml/train/*_features.csv

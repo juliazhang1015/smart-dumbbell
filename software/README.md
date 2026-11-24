@@ -1,5 +1,9 @@
 # Computer interface and logging
 
+## Live dashboard with AI coach (macOS)
+
+[live-dashboard/](live-dashboard/README.md): the newer dashboard. A small local server receives the dumbbell's Bluetooth packets on a Mac, shows them with cadence, heart-rate and movement-label panels, and asks Claude for short feedback on the current set. Runs against `firmware/SmartDumbbell` from `main`.
+
 ## Bluetooth dashboard
 
 Open [web/index.html](web/index.html) from a local checkout in Microsoft Edge or Google Chrome on Windows. Power the Nano ESP32 via USB-C from the power bank. Use the wireless firmware that advertises the SmartDumbbell BLE service (823ef401-1d82-41f6-b689-68aedcbb1960).
@@ -8,7 +12,7 @@ Click **Connect dumbbell**, select **SmartDumbbell**, then use the physical butt
 
 ### BLE interface the dashboard expects
 
-No firmware in this repository implements this yet (`firmware/demo` serves the same fields over Wi-Fi at `/sample`; `firmware/app` v1 uses a Nordic UART service with JSON). Firmware that wants to drive the dashboard must provide:
+`firmware/SmartDumbbell` with `USE_BLE 1` implements it, with one extra byte at offset 16 (classifier label: 0 curl, 1 idle, 2 other, 255 none yet) and a notification every 250 ms. **This page accepts 16-byte packets only, so with the current firmware it connects but shows nothing**; use `live-dashboard/`, which reads both lengths. `firmware/app` v1 uses a Nordic UART service with JSON instead. The interface:
 
 - GATT service `823ef401-1d82-41f6-b689-68aedcbb1960`, advertised so that Web Bluetooth can filter on it.
 - Characteristic `823ef402-1d82-41f6-b689-68aedcbb1960`, readable and notifying, one 16-byte little-endian sample about once per second:
