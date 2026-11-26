@@ -1,93 +1,101 @@
 # Smart Dumbbell
 
-ECE 198 student design project, Group 57, University of Waterloo.
+A lightweight dumbbell that counts bicep curls on the device, reads heart rate at the grip, and lets a connected laptop view the session live and export it as CSV. Built for CCCARE participants who do prescribed curls at home on their own: no smartwatch, phone app or cloud account needed.
 
-A proposed lightweight smart dumbbell for CCCARE participants who can independently perform prescribed bicep curls at home. The device is intended to count complete repetitions, show progress, measure heart rate during movement, and send session records to a computer.
-
-**Status: early prototype development.** Specifications, concept CAD and pitch materials are available, along with bring-up firmware, an integrated application draft, a synthetic-data classifier and a computer logger tested against a mock server. Initial bench checks are recorded in [tests/results](tests/results/); full-system integration and AT-01–AT-10 acceptance remain unverified.
+ECE 198 design project, Group 57, University of Waterloo, Fall 2026.
 
 ![Smart dumbbell concept](hardware/renders/Smart_Dumbbell_Concept_Render_v01.png)
 
-*Concept appearance study. This is not a photograph of a built prototype or a dimensionally exact CAD rendering.*
+*Concept render.*
 
-## Start here
+## Features
 
-- [Bluetooth training dashboard](software/web/) and [connection instructions](software/README.md#bluetooth-dashboard)
-- **[Team repository guide](docs/team-guide.md)**
-- [Handoff brief for teammates](docs/handoff.md)
-- [Working specification](docs/specification.md)
-- [Specification PDF snapshot](docs/exports/Smart_Dumbbell_Preliminary_Specification_v01.pdf)
-- [Decisions and open questions](docs/decisions.md)
-- [Hardware and budget](docs/hardware.md)
-- [Research assignments](docs/research-plan.md)
-- [Pitch deck](presentation/Smart_Dumbbell_Pitch_Waterloo_v02.pptx), [speaker script](presentation/speaker_script.txt), and [editable script](presentation/Smart_Dumbbell_Speaker_Script_v02.docx)
-- [CAD model](hardware/cad/Smart_Dumbbell_Concept_v01.dwg) and [model notes](hardware/cad/MODEL_NOTES.txt)
-- [Schematic, wiring diagram and net list, v1](hardware/wiring/README.md)
+- **Counts curls on the device.** A swing-angle rule is combined with a motion classifier running on the microcontroller, which reduces false counts from other movement such as shaking, raises and putting the dumbbell down.
+- **Heart rate at the grip.** An optical sensor under the finger; the display shows `--` instead of a stale value when the reading is not valid.
+- **Feedback on the dumbbell.** OLED with session state, reps, BPM and the current movement label; an LED while a set is running and a beep on each counted rep.
+- **One-button control.** Short press to start, pause or resume; hold to end the set.
+- **Live view and export.** The dumbbell hosts its own Wi-Fi network with a live page, and sends a Bluetooth packet every 250 ms to a dashboard on a laptop. Once connected, the session can be watched in real time and exported as CSV.
+- **Self-contained.** Counting and the display keep working when no computer is connected.
 
-## Version 1 scope
+## Hardware
 
-- One exercise: bicep curl. Model classes: `curl`, `idle`, `other`.
-- On-device inference and complete-cycle counting.
-- OLED feedback and three session-control buttons.
-- Heart-rate measurement during movement, with unreliable readings marked invalid.
-- Local Wi-Fi communication and computer logging.
-- Internal power and a custom hollow enclosure; no personal smartwatch required.
-- Team purchase budget target: CAD 100 including taxes and shipping, subject to the borrowing assumptions in the specification.
+| Part | Component |
+|---|---|
+| Controller | Arduino Nano ESP32 (ESP32-S3) |
+| Motion | Adafruit LSM6DSOX accelerometer and gyroscope, 104 Hz |
+| Heart rate | MAX30102 optical pulse sensor, 100 Hz |
+| Display | SSD1306 OLED, 128×64 |
+| Controls and feedback | One push button, LED, buzzer |
+| Power | 5000 mAh USB-C power bank |
+| Enclosure | 3D-printed hollow shell holding the power bank, a soldered perfboard hub and the sensors |
 
-The main feasibility risk is obtaining reliable optical heart-rate signals while gripping and moving the dumbbell. All acceptance numbers are proposed targets, not results.
+All three modules share one I2C bus at 400 kHz. See the [wiring and schematic](hardware/wiring/README.md), the [enclosure CAD](hardware/cad/) and the [parts list](docs/hardware.md).
 
-## Proposed architecture
+## How it works
 
 ```text
-Development: motion recordings -> labels -> computer training/testing -> deployed model
+Offline:  recordings -> labels -> training -> C header
 
-LSM6DSOX (accel + gyro) -> on-device model -> movement-cycle logic -> repetition count
-MAX30102 -> signal processing / quality checks -> heart rate or invalid status
-                                      |
-                            OLED + local Wi-Fi
-                                      |
-                            computer view + CSV
+LSM6DSOX (accel + gyro, 104 Hz) -> 2 s buffer -> angle rule finds a candidate rep
+                                              -> model on the last 2 s: curl? -> count + beep
+MAX30102 (100 Hz) -> contact check -> plausible beat intervals -> mean of 4 beats, or "--"
+                                              |
+                               OLED, LED, buzzer on the device
+                                              |
+                 Wi-Fi access point (live page, CSV)  ·  Bluetooth packet every 250 ms
 ```
 
-Counting, sensing, and the display are intended to continue when the computer disconnects. The current specification uses the computer to set targets. Persistent offline history and later backfill are not yet part of the agreed baseline.
+The motion model is a logistic regression on 31 features of a 2 s window, with three classes (`curl`, `idle`, `other`) and 96 weights. Forty labelled recordings were collected from five participants; the final model is trained on a laptop from 35 of them and exported as a C header, so the Nano runs it in plain C++ without an ML runtime. A rep is counted when the swing is at least 60° and back and the model labels the 2 s ending at that rep as `curl`. Details are in the [model card](ml/model-card.md).
+
+## Performance
+
+| Measure | Result |
+|---|---|
+| Classification, leave-one-participant-out over five participants | Macro-F1 0.872 |
+| Inference time on the Nano ESP32 | About 2.2 ms per window |
+| Counting, firmware rule replayed on the recordings | 217 of 223 complete curls counted |
+| False reps during other movement, same replay | 26 without the model check, 1 with it |
+| Counting on the board, one person holding the bare board | 23 of 25 complete curls counted; the two missed were curls where the hand hit a laptop. 0 false reps during other movement |
+
+Test records are in [tests/results](tests/results/).
+
+## Getting started
+
+Build and upload the firmware with `arduino-cli`:
+
+```bash
+arduino-cli compile --fqbn arduino:esp32:nano_nora firmware/SmartDumbbell
+arduino-cli upload  --fqbn arduino:esp32:nano_nora -p /dev/cu.usbmodem<id> firmware/SmartDumbbell
+```
+
+Required libraries, pin assignments and the serial, Wi-Fi and Bluetooth output formats are in the [firmware README](firmware/SmartDumbbell/README.md).
+
+To view a session on a Mac, run the [live dashboard](software/live-dashboard/README.md). It receives the Bluetooth packets and shows reps, cadence, heart rate and movement labels, with short AI feedback on the current set. Without a dashboard, join the dumbbell's Wi-Fi network and open `http://192.168.4.1/` for the live page and CSV download. Open the page before starting a set: the CSV holds only the rows received while the page is open.
+
+To retrain the model from the recordings, see [ml/README.md](ml/README.md).
 
 ## Repository structure
 
 | Directory | Contents |
 |---|---|
-| `docs/` | Specification, handoff, team guide, research, decisions and exported snapshot |
-| `hardware/` | Native CAD, model generator, rendering, assumptions, and the wiring draft |
-| `presentation/` | Current pitch and matching narration |
-| `firmware/` | Nano ESP32 bring-up sketches, classifier and integrated application draft |
-| `software/` | Bluetooth dashboard, computer data logger, mock server and usage instructions |
-| `ml/` | Recording protocol, workplan and training/export pipeline; current weights use synthetic data |
-| `tests/` | Test templates, initial bench records and host software checks |
-| `data/` | Data-handling guidance; no participant recordings |
+| `firmware/` | `SmartDumbbell/` is the main sketch; `classifier/` holds the model code and weights, `bringup/` the single-module test sketches, `app/` and `demo/` earlier sketches |
+| `ml/` | Recording protocol, training and export pipeline, offline replay tools, model card |
+| `data/` | Labelled IMU recordings |
+| `software/` | Live dashboard, an earlier Web Bluetooth page (for the older 16-byte packet), Python logger |
+| `hardware/` | Enclosure CAD, wiring diagrams, schematic, perfboard hub drawings, renders |
+| `docs/` | [Specification](docs/specification.md), [decision log](docs/decisions.md), hardware and budget, background research |
+| `tests/` | Dated test records |
+| `presentation/` | Pitch and progress-update decks |
 
-## Next milestones
+## Team
 
-- [x] Write preliminary requirements and acceptance targets.
-- [x] Create a concept CAD model and appearance render.
-- [x] Prepare a pitch deck and narration.
-- [x] Select the controller and IMU and record prices (2026-10-31).
-- [x] Nano ESP32 and 4517 received and brought up: upload, Wi-Fi AP, I2C, 104 Hz IMU stream (2026-11-03).
-- [ ] Confirm loan modules, dimensions, connector clearances, and budget.
-- [ ] Test grip heart-rate feasibility against a synchronized reference.
-- [ ] Build a rule-based counting baseline and collect labelled motion recordings.
-- [ ] Train and evaluate a compact classifier on held-out sessions.
-- [ ] Integrate local control, display, Wi-Fi and recording.
-- [ ] Revise and test the enclosure before fabrication.
+| Member | Main work |
+|---|---|
+| [Hanson He](https://github.com/HansonHe-UW) | Motion classifier (IMU recordings, training pipeline, on-device inference), model-confirmed rep counting in the firmware, board bring-up and testing, perfboard hub layout, macOS live dashboard |
+| [Eric Zhu](https://github.com/ericzhu0220) | Enclosure design and 3D printing, fit checks and assembly of the prototype, help with motion data collection and model training |
+| [Zoe Wang](https://github.com/ZoeWang0607) | Electronics and wiring, SmartDumbbell firmware with Wi-Fi and Bluetooth, Web Bluetooth dashboard |
+| [Julia Zhang](https://github.com/juliazhang1015) | Circuit schematic, first integrated demo firmware, offline rep-counting tools, Python data logger, background research and documentation |
 
-## Collaboration
+## License
 
-Follow the [team guide](docs/team-guide.md) and [contribution workflow](CONTRIBUTING.md). Task, PR and test-record templates are included. These are workflow conventions, not automatically enforced branch-protection rules.
-
-Use short branches such as `docs/hardware-check`, `firmware/sensor-readout`, and `ml/data-protocol`. Open a pull request for changes, explain what changed and what evidence supports it, and ask a teammate to review before merging. Keep requirements, hardware choices, CAD notes and presentation claims consistent.
-
-Update the Markdown specification first. Treat dated PDF/PPTX exports as snapshots and regenerate them when needed. Do not record planned tests as passed.
-
-## Project context
-
-This is a student course project, not an official University of Waterloo or CCCARE product. The pitch uses the supplied University of Waterloo Faculty of Engineering presentation template. Team review and physical validation remain necessary.
-
-The repository contains project-authored artifacts. Course handouts and the original university template remain in the course workspace. No open-source license has been selected; public visibility does not itself grant a license to reuse all material.
+This is a student course project, not an official University of Waterloo or CCCARE product and not a medical device. No open-source license has been selected.
